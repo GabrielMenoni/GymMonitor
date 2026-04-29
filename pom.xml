@@ -12,8 +12,8 @@
     <description>Parent Maven project for GymMonitor microservices</description>
 
     <modules>
-        <module>services/UserService</module>
         <module>services/AccessControl</module>
+        <module>services/UserService</module>
         <module>services/PresenceService</module>
     </modules>
 </project>

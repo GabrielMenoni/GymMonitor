@@ -1,4 +1,4 @@
-package com.example.accesscontrol.security;
+package com.example.userservice.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +28,7 @@ public class SecurityConfig {
                                 "/auth/funcionarios/login",
                                 "/auth/admin/login",
                                 "/auth/admin/cadastro",
-                                "/access-control/status",
+                                "/user-service/status",
                                 "/actuator/health",
                                 "/h2-console/**")
                         .permitAll()

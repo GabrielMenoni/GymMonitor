@@ -1,6 +1,6 @@
-package com.example.accesscontrol.repository;
+package com.example.userservice.repository;
 
-import com.example.accesscontrol.entity.Admin;
+import com.example.userservice.entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

@@ -1,6 +1,6 @@
-package com.example.accesscontrol.controller;
+package com.example.userservice.controller;
 
-import com.example.accesscontrol.service.AccessControlService;
+import com.example.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/access-control")
+@RequestMapping("/user-service")
 @RequiredArgsConstructor
-public class AccessControlController {
+public class UserServiceController {
 
-    private final AccessControlService accessControlService;
+    private final UserService userService;
 
     @GetMapping("/status")
     public String status() {
-        return accessControlService.status();
+        return userService.status();
     }
 
     @GetMapping("/me")

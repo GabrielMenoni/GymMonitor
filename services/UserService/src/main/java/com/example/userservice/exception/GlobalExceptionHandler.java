@@ -1,4 +1,4 @@
-package com.example.accesscontrol.exception;
+package com.example.userservice.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

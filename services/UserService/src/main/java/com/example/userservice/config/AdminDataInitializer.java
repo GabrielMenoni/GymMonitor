@@ -1,7 +1,7 @@
-package com.example.accesscontrol.config;
+package com.example.userservice.config;
 
-import com.example.accesscontrol.entity.Admin;
-import com.example.accesscontrol.repository.AdminRepository;
+import com.example.userservice.entity.Admin;
+import com.example.userservice.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;

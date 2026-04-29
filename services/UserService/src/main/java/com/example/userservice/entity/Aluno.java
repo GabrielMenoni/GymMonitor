@@ -1,4 +1,4 @@
-package com.example.accesscontrol.entity;
+package com.example.userservice.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

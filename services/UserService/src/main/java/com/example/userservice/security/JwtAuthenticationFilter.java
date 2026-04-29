@@ -1,6 +1,6 @@
-package com.example.accesscontrol.security;
+package com.example.userservice.security;
 
-import com.example.accesscontrol.service.JwtService;
+import com.example.userservice.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.example.accesscontrol.exception;
+package com.example.userservice.exception;
 
 public class AccessControlException extends RuntimeException {
 

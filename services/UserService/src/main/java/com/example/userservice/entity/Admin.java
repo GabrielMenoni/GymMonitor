@@ -1,4 +1,4 @@
-package com.example.accesscontrol.entity;
+package com.example.userservice.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,8 +17,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "employees")
-public class Funcionario {
+@Table(name = "admins")
+public class Admin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -29,12 +29,6 @@ public class Funcionario {
 
     @Column(nullable = false, unique = true)
     private String email;
-
-    @Column(nullable = false)
-    private String position;
-
-    @Column(nullable = false)
-    private float salary;
 
     @Column(nullable = false)
     private String password;

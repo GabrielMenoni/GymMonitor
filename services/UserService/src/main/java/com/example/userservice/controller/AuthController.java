@@ -1,12 +1,12 @@
-package com.example.accesscontrol.controller;
+package com.example.userservice.controller;
 
-import com.example.accesscontrol.dto.CadastroAdminRequest;
-import com.example.accesscontrol.dto.CadastroAlunoRequest;
-import com.example.accesscontrol.dto.CadastroFuncionarioRequest;
-import com.example.accesscontrol.dto.LoginRequest;
-import com.example.accesscontrol.dto.RegisterResponse;
-import com.example.accesscontrol.dto.TokenResponse;
-import com.example.accesscontrol.service.AuthService;
+import com.example.userservice.dto.CadastroAdminRequest;
+import com.example.userservice.dto.CadastroAlunoRequest;
+import com.example.userservice.dto.CadastroFuncionarioRequest;
+import com.example.userservice.dto.LoginRequest;
+import com.example.userservice.dto.RegisterResponse;
+import com.example.userservice.dto.TokenResponse;
+import com.example.userservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
