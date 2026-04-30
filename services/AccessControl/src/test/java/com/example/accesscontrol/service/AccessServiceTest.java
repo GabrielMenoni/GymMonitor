@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,7 +50,7 @@ class AccessServiceTest {
         assertEquals("ALUNO", response.getUserType());
         assertNotNull(response.getEntradaEm());
         verify(repository).save(any(SessaoAcesso.class));
-        verify(eventPublisher).publish(userId, UserType.ALUNO, "CHECKIN");
+        verify(eventPublisher).publish(eq(userId), eq(UserType.ALUNO), eq("CHECKIN"), eq(saved.getId()));
     }
 
     @Test
@@ -59,7 +60,7 @@ class AccessServiceTest {
 
         assertThrows(SessaoAbertaException.class, () -> accessService.checkin(userId, UserType.ALUNO));
         verify(repository, never()).save(any());
-        verify(eventPublisher, never()).publish(any(), any(), any());
+        verify(eventPublisher, never()).publish(any(), any(), any(), any());
     }
 
     @Test
@@ -75,7 +76,7 @@ class AccessServiceTest {
         assertNotNull(response.getSaidaEm());
         assertEquals(userId, response.getUserId());
         verify(repository).save(aberta);
-        verify(eventPublisher).publish(userId, UserType.ALUNO, "CHECKOUT");
+        verify(eventPublisher).publish(eq(userId), eq(UserType.ALUNO), eq("CHECKOUT"), eq(aberta.getId()));
     }
 
     @Test
@@ -84,6 +85,6 @@ class AccessServiceTest {
 
         assertThrows(SessaoNaoEncontradaException.class, () -> accessService.checkout(userId, UserType.ALUNO));
         verify(repository, never()).save(any());
-        verify(eventPublisher, never()).publish(any(), any(), any());
+        verify(eventPublisher, never()).publish(any(), any(), any(), any());
     }
 }

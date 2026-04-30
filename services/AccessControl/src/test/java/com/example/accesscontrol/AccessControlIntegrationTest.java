@@ -105,6 +105,8 @@ class AccessControlIntegrationTest {
         mockMvc.perform(post("/access/checkout")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sessaoId").exists())
+                .andExpect(jsonPath("$.userId").value(userId.toString()))
                 .andExpect(jsonPath("$.saidaEm").exists())
                 .andExpect(jsonPath("$.entradaEm").exists());
 

@@ -34,7 +34,7 @@ public class AccessService {
         sessao.setEntradaEm(Instant.now());
 
         SessaoAcesso saved = repository.save(sessao);
-        eventPublisher.publish(saved.getUserId(), saved.getUserType(), "CHECKIN");
+        eventPublisher.publish(saved.getUserId(), saved.getUserType(), "CHECKIN", saved.getId());
 
         return new CheckinResponse(
                 saved.getId(),
@@ -50,7 +50,7 @@ public class AccessService {
 
         sessao.setSaidaEm(Instant.now());
         SessaoAcesso saved = repository.save(sessao);
-        eventPublisher.publish(saved.getUserId(), saved.getUserType(), "CHECKOUT");
+        eventPublisher.publish(saved.getUserId(), saved.getUserType(), "CHECKOUT", saved.getId());
 
         return new CheckoutResponse(
                 saved.getId(),

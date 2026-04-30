@@ -28,7 +28,8 @@ class AccessEventPublisherTest {
     @Test
     void publish_enviaMensagemParaCheckinRoutingKey() {
         UUID userId = UUID.randomUUID();
-        publisher.publish(userId, UserType.ALUNO, "CHECKIN");
+        UUID sessaoId = UUID.randomUUID();
+        publisher.publish(userId, UserType.ALUNO, "CHECKIN", sessaoId);
 
         ArgumentCaptor<AccessEvent> captor = ArgumentCaptor.forClass(AccessEvent.class);
         verify(rabbitTemplate).convertAndSend(eq("gymmonitor.access"), eq("access.checkin"), captor.capture());
@@ -39,27 +40,34 @@ class AccessEventPublisherTest {
         assertEquals(userId, event.userId());
         assertEquals("ALUNO", event.userType());
         assertNotNull(event.timestamp());
+        assertEquals(sessaoId, event.sessaoId());
     }
 
     @Test
     void publish_enviaMensagemParaCheckoutRoutingKey() {
         UUID userId = UUID.randomUUID();
-        publisher.publish(userId, UserType.FUNCIONARIO, "CHECKOUT");
+        UUID sessaoId = UUID.randomUUID();
+        publisher.publish(userId, UserType.FUNCIONARIO, "CHECKOUT", sessaoId);
 
         ArgumentCaptor<AccessEvent> captor = ArgumentCaptor.forClass(AccessEvent.class);
         verify(rabbitTemplate).convertAndSend(eq("gymmonitor.access"), eq("access.checkout"), captor.capture());
 
         AccessEvent event = captor.getValue();
+        assertNotNull(event.eventId());
+        assertEquals(userId, event.userId());
+        assertNotNull(event.timestamp());
         assertEquals("CHECKOUT", event.eventType());
         assertEquals("FUNCIONARIO", event.userType());
+        assertEquals(sessaoId, event.sessaoId());
     }
 
     @Test
     void publish_naoLancaExcecao_quandoBrokerFalha() {
         UUID userId = UUID.randomUUID();
+        UUID sessaoId = UUID.randomUUID();
         doThrow(new RuntimeException("broker indisponivel"))
                 .when(rabbitTemplate).convertAndSend(anyString(), anyString(), any(AccessEvent.class));
 
-        assertDoesNotThrow(() -> publisher.publish(userId, UserType.ALUNO, "CHECKIN"));
+        assertDoesNotThrow(() -> publisher.publish(userId, UserType.ALUNO, "CHECKIN", sessaoId));
     }
 }

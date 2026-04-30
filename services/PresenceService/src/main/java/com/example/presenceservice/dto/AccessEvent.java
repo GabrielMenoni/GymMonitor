@@ -1,4 +1,4 @@
-package com.example.accesscontrol.dto;
+package com.example.presenceservice.dto;
 
 import java.util.UUID;
 

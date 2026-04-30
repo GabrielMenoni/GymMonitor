@@ -11,7 +11,15 @@
       "Bash(./mvnw -pl services/AccessControl dependency:copy-dependencies -DincludeArtifactIds=h2 -DoutputDirectory=/tmp/h2deps -q)",
       "Read(//tmp/**)",
       "Bash(../../mvnw test *)",
-      "Bash(../../mvnw compile *)"
+      "Bash(../../mvnw compile *)",
+      "Bash(../../mvnw dependency:resolve -q)",
+      "Bash(../../mvnw dependency:resolve)",
+      "Bash(./mvnw -pl services/PresenceService test -q)",
+      "Bash(./mvnw -pl services/PresenceService test)",
+      "Bash(./mvnw *)",
+      "Bash(redis-cli ping *)",
+      "Bash(../../mvnw test-compile *)",
+      "Bash(systemctl is-active *)"
     ]
   }
 }

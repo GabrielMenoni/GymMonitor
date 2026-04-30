@@ -20,13 +20,14 @@ public class AccessEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
 
-    public void publish(UUID userId, UserType userType, String eventType) {
+    public void publish(UUID userId, UserType userType, String eventType, UUID sessaoId) {
         AccessEvent event = new AccessEvent(
                 UUID.randomUUID(),
                 eventType,
                 userId,
                 userType.name(),
-                Instant.now().toString()
+                Instant.now().toString(),
+                sessaoId
         );
         String routingKey = "access." + eventType.toLowerCase();
         try {
