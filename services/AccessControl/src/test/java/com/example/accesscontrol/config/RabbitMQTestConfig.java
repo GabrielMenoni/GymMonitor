@@ -1,0 +1,18 @@
+package com.example.accesscontrol.config;
+
+import com.github.fridujo.rabbitmq.mock.MockConnectionFactory;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+
+@TestConfiguration
+public class RabbitMQTestConfig {
+
+    @Bean
+    @Primary
+    public ConnectionFactory connectionFactory() {
+        return new CachingConnectionFactory(new MockConnectionFactory());
+    }
+}

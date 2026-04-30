@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw test *)",
+      "Bash(./mvnw compile *)",
+      "Bash(./mvnw -version)",
+      "Bash(java -version)",
+      "Bash(./mvnw dependency:tree -pl services/UserService -Dincludes=org.projectlombok)",
+      "Bash(./mvnw help:effective-pom -pl services/UserService)",
+      "Bash(./mvnw dependency:resolve *)",
+      "Bash(./mvnw -pl services/AccessControl dependency:copy-dependencies -DincludeArtifactIds=h2 -DoutputDirectory=/tmp/h2deps -q)",
+      "Read(//tmp/**)",
+      "Bash(../../mvnw test *)",
+      "Bash(../../mvnw compile *)"
+    ]
+  }
+}

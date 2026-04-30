@@ -35,7 +35,6 @@ public class AuthService {
         if (adminRepository.existsByEmail(request.getEmail())) {
             throw new AccessControlException("Admin ja cadastrado com este email");
         }
-
         Admin admin = new Admin();
         admin.setName(request.getName());
         admin.setEmail(request.getEmail());
@@ -47,12 +46,10 @@ public class AuthService {
     public TokenResponse loginAdmin(LoginRequest request) {
         Admin admin = adminRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AccessControlException("Credenciais invalidas"));
-
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
             throw new AccessControlException("Credenciais invalidas");
         }
-
-        String token = jwtService.generateToken(admin.getEmail(), "ADMIN");
+        String token = jwtService.generateToken(admin.getId(), admin.getEmail(), "ADMIN");
         return new TokenResponse(token, "ADMIN", admin.getEmail());
     }
 
@@ -60,7 +57,6 @@ public class AuthService {
         if (alunoRepository.existsByEmail(request.getEmail())) {
             throw new AccessControlException("Aluno ja cadastrado com este email");
         }
-
         Aluno aluno = new Aluno();
         aluno.setName(request.getName());
         aluno.setEmail(request.getEmail());
@@ -74,12 +70,10 @@ public class AuthService {
     public TokenResponse loginAluno(LoginRequest request) {
         Aluno aluno = alunoRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AccessControlException("Credenciais invalidas"));
-
         if (!passwordEncoder.matches(request.getPassword(), aluno.getPassword())) {
             throw new AccessControlException("Credenciais invalidas");
         }
-
-        String token = jwtService.generateToken(aluno.getEmail(), "ALUNO");
+        String token = jwtService.generateToken(aluno.getId(), aluno.getEmail(), "ALUNO");
         return new TokenResponse(token, "ALUNO", aluno.getEmail());
     }
 
@@ -87,7 +81,6 @@ public class AuthService {
         if (funcionarioRepository.existsByEmail(request.getEmail())) {
             throw new AccessControlException("Funcionario ja cadastrado com este email");
         }
-
         Funcionario funcionario = new Funcionario();
         funcionario.setName(request.getName());
         funcionario.setEmail(request.getEmail());
@@ -95,19 +88,16 @@ public class AuthService {
         funcionario.setSalary(request.getSalary());
         funcionario.setPassword(passwordEncoder.encode(request.getPassword()));
         Funcionario savedFuncionario = funcionarioRepository.save(funcionario);
-        return new RegisterResponse(savedFuncionario.getId(), savedFuncionario.getName(), savedFuncionario.getEmail(),
-                "FUNCIONARIO");
+        return new RegisterResponse(savedFuncionario.getId(), savedFuncionario.getName(), savedFuncionario.getEmail(), "FUNCIONARIO");
     }
 
     public TokenResponse loginFuncionario(LoginRequest request) {
         Funcionario funcionario = funcionarioRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AccessControlException("Credenciais invalidas"));
-
         if (!passwordEncoder.matches(request.getPassword(), funcionario.getPassword())) {
             throw new AccessControlException("Credenciais invalidas");
         }
-
-        String token = jwtService.generateToken(funcionario.getEmail(), "FUNCIONARIO");
+        String token = jwtService.generateToken(funcionario.getId(), funcionario.getEmail(), "FUNCIONARIO");
         return new TokenResponse(token, "FUNCIONARIO", funcionario.getEmail());
     }
 

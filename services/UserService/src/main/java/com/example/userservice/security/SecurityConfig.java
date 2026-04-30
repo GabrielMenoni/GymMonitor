@@ -2,6 +2,7 @@ package com.example.userservice.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +24,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/alunos/cadastro").hasRole("FUNCIONARIO")
                         .requestMatchers("/auth/funcionarios/cadastro").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/user-service/alunos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/user-service/funcionarios").hasRole("ADMIN")
                         .requestMatchers(
                                 "/auth/alunos/login",
                                 "/auth/funcionarios/login",
@@ -35,7 +38,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // Allow H2 console frames in development.
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();

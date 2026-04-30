@@ -11,6 +11,7 @@ import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -21,11 +22,12 @@ public class JwtService {
     @Value("${security.jwt.expiration-minutes:120}")
     private long expirationMinutes;
 
-    public String generateToken(String email, String role) {
+    public String generateToken(UUID userId, String email, String role) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(email)
                 .claim("role", role)
+                .claim("userId", userId.toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(expirationMinutes, ChronoUnit.MINUTES)))
                 .signWith(getSigningKey())
@@ -41,8 +43,11 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token) {
-        Date expiration = extractAllClaims(token).getExpiration();
-        return expiration.after(new Date());
+        try {
+            return !extractAllClaims(token).getExpiration().before(new Date());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private Claims extractAllClaims(String token) {

@@ -1,0 +1,4 @@
+-- H2 does not support partial unique indexes (WHERE clause).
+-- Concurrency protection is handled at the service layer via @Transactional + findByUserIdAndSaidaEmIsNull.
+-- When migrating to PostgreSQL, add:
+-- CREATE UNIQUE INDEX uq_sessao_aberta ON sessoes_acesso (user_id) WHERE saida_em IS NULL;
