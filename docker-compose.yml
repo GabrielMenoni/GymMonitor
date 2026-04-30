@@ -1,0 +1,89 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: gymmonitor-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: gymmonitor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  access-control:
+    build:
+      context: ./backend/gymmonitor/services/AccessControl
+      dockerfile: Dockerfile
+    container_name: gymmonitor-access-control
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: "5672"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: ./backend/gymmonitor/services/UserService
+      dockerfile: Dockerfile
+    container_name: gymmonitor-user-service
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+
+  presence-service:
+    build:
+      context: ./backend/gymmonitor/services/PresenceService
+      dockerfile: Dockerfile
+    container_name: gymmonitor-presence-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: "5672"
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gymmonitor-frontend
+    ports:
+      - "4200:4200"
+    environment:
+      PORT: 4200
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  redis_data:
