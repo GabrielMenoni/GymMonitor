@@ -11,7 +11,7 @@
 npm-debug.log
 yarn-error.log
 
-# IDEs and editors
+# IDEs, editors & Agents
 .idea/
 .project
 .classpath
@@ -19,8 +19,7 @@ yarn-error.log
 *.launch
 .settings/
 *.sublime-workspace
-
-# Visual Studio Code
+.claude
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

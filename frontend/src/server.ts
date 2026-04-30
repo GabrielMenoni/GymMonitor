@@ -17,8 +17,16 @@ const angularApp = new AngularNodeAppEngine();
  */
 app.set('trust proxy', 1);
 app.use((req, res, next) => {
-  // Ensure host header is set for SSR validation
-  if (!req.headers.host) {
+  // Ensure host header is valid for Angular SSR SSRF validation
+  // Extract just the hostname for comparison
+  const hostHeader = req.headers.host || 'localhost:4200';
+  const hostname = hostHeader.split(':')[0];
+
+  // Allow localhost and container hostname
+  const allowedHosts = ['localhost', '127.0.0.1', 'gymmonitor-frontend'];
+
+  if (!allowedHosts.includes(hostname)) {
+    // If not in allowed list, default to localhost:4200
     req.headers.host = 'localhost:4200';
   }
   next();
