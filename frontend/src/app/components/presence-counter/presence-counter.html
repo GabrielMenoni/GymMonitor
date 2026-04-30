@@ -1,0 +1,26 @@
+<div class="flex min-h-screen items-center justify-center bg-gray-100">
+  <div class="flex flex-col items-center gap-4 rounded-2xl bg-white p-10 shadow-lg">
+    <h1 class="text-2xl font-semibold text-gray-700">Presentes na Academia</h1>
+
+    <span class="text-8xl font-bold text-gray-900">
+      {{ ws.presenceCount() !== null ? ws.presenceCount() : '---' }}
+    </span>
+
+    <div class="flex items-center gap-2">
+      @switch (ws.connectionStatus()) {
+        @case ('connected') {
+          <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span>
+          <span class="text-sm text-green-600">Conectado</span>
+        }
+        @case ('error') {
+          <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
+          <span class="text-sm text-red-600">Sem autorização</span>
+        }
+        @default {
+          <span class="h-2.5 w-2.5 rounded-full bg-gray-400"></span>
+          <span class="text-sm text-gray-500">Reconectando...</span>
+        }
+      }
+    </div>
+  </div>
+</div>
