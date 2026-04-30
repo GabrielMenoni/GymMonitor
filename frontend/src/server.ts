@@ -13,6 +13,18 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
+ * Configure trust proxy and headers for SSR validation
+ */
+app.set('trust proxy', 1);
+app.use((req, res, next) => {
+  // Ensure host header is set for SSR validation
+  if (!req.headers.host) {
+    req.headers.host = 'localhost:4200';
+  }
+  next();
+});
+
+/**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.
  *
