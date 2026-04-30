@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +26,9 @@ class PresenceServiceTest {
 
     @Mock
     private RedisPresenceRepository repository;
+
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     @InjectMocks
     private PresenceService presenceService;
@@ -37,6 +42,7 @@ class PresenceServiceTest {
     void handleCheckin_salvaDados_quandoEventoNaoEDuplicado() {
         AccessEvent event = buildEvent("CHECKIN");
         when(repository.isEventProcessed(event.eventId())).thenReturn(false);
+        when(repository.countInside()).thenReturn(1L);
 
         presenceService.handleCheckin(event);
 
@@ -52,12 +58,27 @@ class PresenceServiceTest {
         presenceService.handleCheckin(event);
 
         verify(repository, never()).saveCheckin(any(), any(), any(), any(), any());
+        verifyNoInteractions(messagingTemplate);
+    }
+
+    @Test
+    void handleCheckin_fazBroadcast_quandoEventoNaoEDuplicado() {
+        AccessEvent event = buildEvent("CHECKIN");
+        when(repository.isEventProcessed(event.eventId())).thenReturn(false);
+        when(repository.countInside()).thenReturn(3L);
+
+        presenceService.handleCheckin(event);
+
+        verify(messagingTemplate).convertAndSend(
+                eq("/topic/presence/count"),
+                eq(new PresenceCountResponse(3L)));
     }
 
     @Test
     void handleCheckout_removeUsuario_quandoEventoNaoEDuplicado() {
         AccessEvent event = buildEvent("CHECKOUT");
         when(repository.isEventProcessed(event.eventId())).thenReturn(false);
+        when(repository.countInside()).thenReturn(0L);
 
         presenceService.handleCheckout(event);
 
@@ -72,6 +93,20 @@ class PresenceServiceTest {
         presenceService.handleCheckout(event);
 
         verify(repository, never()).removeUser(any());
+        verifyNoInteractions(messagingTemplate);
+    }
+
+    @Test
+    void handleCheckout_fazBroadcast_quandoEventoNaoEDuplicado() {
+        AccessEvent event = buildEvent("CHECKOUT");
+        when(repository.isEventProcessed(event.eventId())).thenReturn(false);
+        when(repository.countInside()).thenReturn(2L);
+
+        presenceService.handleCheckout(event);
+
+        verify(messagingTemplate).convertAndSend(
+                eq("/topic/presence/count"),
+                eq(new PresenceCountResponse(2L)));
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.example.presenceservice.dto.PresenceUsersResponse;
 import com.example.presenceservice.repository.RedisPresenceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class PresenceService {
 
     private final RedisPresenceRepository repository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public void handleCheckin(AccessEvent event) {
         if (repository.isEventProcessed(event.eventId())) {
@@ -22,6 +24,7 @@ public class PresenceService {
         }
         repository.saveCheckin(event.userId(), event.userType(),
                 event.timestamp(), event.sessaoId(), event.eventId());
+        broadcastCount();
     }
 
     public void handleCheckout(AccessEvent event) {
@@ -30,6 +33,7 @@ public class PresenceService {
             return;
         }
         repository.removeUser(event.userId());
+        broadcastCount();
     }
 
     public PresenceCountResponse getCount() {
@@ -38,5 +42,10 @@ public class PresenceService {
 
     public PresenceUsersResponse getUsers() {
         return new PresenceUsersResponse(repository.listUsersInside());
+    }
+
+    private void broadcastCount() {
+        messagingTemplate.convertAndSend("/topic/presence/count",
+                new PresenceCountResponse(repository.countInside()));
     }
 }
