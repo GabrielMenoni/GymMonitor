@@ -28,7 +28,7 @@ spring:
               predicates:
                 - Path=/api/presence/ws/**
               filters:
-                - StripPrefix=1
+                - RewritePath=/api/presence/ws(?<segment>.*), /ws${segment}
 
             - id: presence-service
               uri: http://presence-service:8083

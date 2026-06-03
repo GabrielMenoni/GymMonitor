@@ -21,8 +21,10 @@ export class PresenceWebsocketService implements OnDestroy {
 
     const client = new Client({
       webSocketFactory: () => new SockJS(environment.apiUrl + '/presence/ws'),
-      connectHeaders: {
-        Authorization: `Bearer ${this.auth.getToken() ?? ''}`,
+      beforeConnect: async () => {
+        client.connectHeaders = {
+          Authorization: `Bearer ${this.auth.getToken() ?? ''}`,
+        };
       },
       reconnectDelay: 5000,
       onConnect: () => {
