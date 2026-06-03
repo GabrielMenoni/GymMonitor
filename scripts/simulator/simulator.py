@@ -24,8 +24,10 @@ log = logging.getLogger(__name__)
 NUM_FUNCIONARIOS = 10
 NUM_ALUNOS = 2000
 
-# estado: email -> token
-tokens_cache: dict[str, str] = {}
+TOKEN_TTL_SECONDS = 100 * 60  # 100 minutos (tokens expiram em 120min)
+
+# estado: email -> (token, timestamp_criacao)
+tokens_cache: dict[str, tuple[str, float]] = {}
 inside: set[str] = set()   # emails com checkin aberto
 
 
@@ -49,8 +51,14 @@ def wait_for_gateway():
 
 
 def get_token(email: str, password: str, role: str) -> str | None:
-    if email in tokens_cache:
-        return tokens_cache[email]
+    cached = tokens_cache.get(email)
+    if cached:
+        token, created_at = cached
+        if time.monotonic() - created_at < TOKEN_TTL_SECONDS:
+            return token
+        # token expirado — remove do cache para forçar novo login
+        del tokens_cache[email]
+
     endpoint = "/auth/funcionarios/login" if role == "FUNCIONARIO" else "/auth/alunos/login"
     try:
         r = requests.post(
@@ -60,7 +68,7 @@ def get_token(email: str, password: str, role: str) -> str | None:
         )
         if r.status_code == 200:
             token = r.json()["token"]
-            tokens_cache[email] = token
+            tokens_cache[email] = (token, time.monotonic())
             return token
     except requests.exceptions.RequestException as e:
         log.warning(f"Login falhou para {email}: {e}")
@@ -152,7 +160,7 @@ def main():
             candidates_out = random.sample(list(inside), min(co, len(inside)))
             for email in candidates_out:
                 role = "ALUNO" if email.startswith("aluno") else "FUNCIONARIO"
-                password = f"Aluno{email[4:8]}@" if role == "ALUNO" else f"Func{email[11:13]}@123"
+                password = f"Aluno{email[5:9]}@" if role == "ALUNO" else f"Func{email[11:13]}@123"
                 token = get_token(email, password, role)
                 if token:
                     ok = do_checkout(email, token)

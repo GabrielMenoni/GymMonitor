@@ -97,7 +97,7 @@ def cadastrar_aluno(token, index):
     )
     if r.status_code in (200, 201):
         return email
-    if r.status_code in (400, 409):
+    if r.status_code == 409:
         return email  # já existe
     print(f"  AVISO: aluno {email} retornou {r.status_code}: {r.text[:100]}")
     return None
@@ -119,13 +119,28 @@ def main():
 
     # Alunos (precisa de token de funcionário para cadastrar)
     print(f"\nCadastrando {NUM_ALUNOS} alunos...")
-    func_token_r = requests.post(
-        f"{GATEWAY_URL}/auth/funcionarios/login",
-        json={"email": "funcionario01@gymmonitor.com", "password": "Func01@123"},
-        timeout=10,
-    )
-    func_token_r.raise_for_status()
-    func_token = func_token_r.json()["token"]
+    if not funcionarios:
+        print("ERRO: Nenhum funcionário foi cadastrado com sucesso. Abortando seed de alunos.")
+        sys.exit(1)
+
+    func_token = None
+    for i, func_email in enumerate(funcionarios, start=1):
+        index = int(func_email.replace("funcionario", "").replace("@gymmonitor.com", ""))
+        func_password = f"Func{index:02d}@123"
+        func_login_r = requests.post(
+            f"{GATEWAY_URL}/auth/funcionarios/login",
+            json={"email": func_email, "password": func_password},
+            timeout=10,
+        )
+        if func_login_r.status_code == 200:
+            func_token = func_login_r.json()["token"]
+            print(f"  Usando {func_email} para cadastrar alunos.")
+            break
+        print(f"  Login falhou para {func_email} ({func_login_r.status_code}), tentando próximo...")
+
+    if func_token is None:
+        print("ERRO: Nenhum funcionário conseguiu autenticar. Abortando seed de alunos.")
+        sys.exit(1)
 
     alunos_ok = 0
     for i in range(1, NUM_ALUNOS + 1):
