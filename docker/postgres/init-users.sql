@@ -1,0 +1,24 @@
+CREATE TABLE IF NOT EXISTS admins (
+    id          UUID        NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL,
+    email       VARCHAR(255) NOT NULL UNIQUE,
+    password    VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS students (
+    id                       UUID        NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    name                     VARCHAR(255) NOT NULL,
+    email                    VARCHAR(255) NOT NULL UNIQUE,
+    password                 VARCHAR(255) NOT NULL,
+    birth_date               DATE,
+    monthly_payment_due_date TIMESTAMP   NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS employees (
+    id       UUID         NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    name     VARCHAR(255) NOT NULL,
+    email    VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    position VARCHAR(255) NOT NULL,
+    salary   REAL         NOT NULL
+);

@@ -36,6 +36,46 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  postgres-users:
+    image: postgres:16-alpine
+    container_name: gymmonitor-postgres-users
+    networks:
+      - gymmonitor-net
+    environment:
+      POSTGRES_DB: gymmonitor_users
+      POSTGRES_USER: gymmonitor
+      POSTGRES_PASSWORD: gymmonitor_pass
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-users.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U gymmonitor -d gymmonitor_users" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+  postgres-access:
+    image: postgres:16-alpine
+    container_name: gymmonitor-postgres-access
+    networks:
+      - gymmonitor-net
+    environment:
+      POSTGRES_DB: gymmonitor_access
+      POSTGRES_USER: gymmonitor
+      POSTGRES_PASSWORD: gymmonitor_pass
+    volumes:
+      - postgres_access_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-access.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U gymmonitor -d gymmonitor_access" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
   user-service:
     build:
       context: ./backend/gymmonitor/services/UserService
@@ -43,12 +83,19 @@ services:
     container_name: gymmonitor-user-service
     networks:
       - gymmonitor-net
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/gymmonitor_users
+      SPRING_DATASOURCE_USERNAME: gymmonitor
+      SPRING_DATASOURCE_PASSWORD: gymmonitor_pass
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 8
       start_period: 30s
+    depends_on:
+      postgres-users:
+        condition: service_healthy
     restart: unless-stopped
 
   access-control:
@@ -59,6 +106,9 @@ services:
     networks:
       - gymmonitor-net
     environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-access:5432/gymmonitor_access
+      SPRING_DATASOURCE_USERNAME: gymmonitor
+      SPRING_DATASOURCE_PASSWORD: gymmonitor_pass
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: "5672"
     healthcheck:
@@ -68,6 +118,8 @@ services:
       retries: 8
       start_period: 30s
     depends_on:
+      postgres-access:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped
@@ -106,6 +158,12 @@ services:
       - "8080:8080"
     networks:
       - gymmonitor-net
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
     depends_on:
       user-service:
         condition: service_healthy
@@ -128,6 +186,40 @@ services:
       PORT: 4200
     restart: unless-stopped
 
+  seed:
+    build:
+      context: ./scripts/seed
+      dockerfile: Dockerfile
+    container_name: gymmonitor-seed
+    networks:
+      - gymmonitor-net
+    environment:
+      GATEWAY_URL: http://api-gateway:8080/api
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    restart: "no"
+
+  simulator:
+    build:
+      context: ./scripts/simulator
+      dockerfile: Dockerfile
+    container_name: gymmonitor-simulator
+    networks:
+      - gymmonitor-net
+    environment:
+      GATEWAY_URL: http://api-gateway:8080/api
+      TICK_SECONDS: "10"
+      MAX_SIMULTANEOUS: "80"
+      CHECKINS_PER_TICK: "5"
+      CHECKOUTS_PER_TICK: "4"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   rabbitmq_data:
   redis_data:
+  postgres_users_data:
+  postgres_access_data:
