@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { PresenceCounterComponent } from './components/presence-counter/presence-counter';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [PresenceCounterComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

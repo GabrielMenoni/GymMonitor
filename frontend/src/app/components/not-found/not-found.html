@@ -1,0 +1,26 @@
+<div
+  class="min-h-screen flex flex-col items-center justify-center gap-6"
+  style="background-color: var(--color-bg-primary);"
+>
+  <span
+    class="text-9xl font-black"
+    style="color: var(--color-accent);"
+  >404</span>
+
+  <p
+    class="text-xl font-medium text-center"
+    style="color: var(--color-text-primary);"
+  >
+    Página não encontrada ou acesso não permitido
+  </p>
+
+  <button
+    (click)="goHome()"
+    class="px-6 py-2 rounded-lg font-semibold transition-colors cursor-pointer"
+    style="background-color: var(--color-accent); color: #ffffff;"
+    onmouseover="this.style.backgroundColor='var(--color-accent-hover)'"
+    onmouseout="this.style.backgroundColor='var(--color-accent)'"
+  >
+    Voltar ao início
+  </button>
+</div>

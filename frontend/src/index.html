@@ -1,6 +1,5 @@
 <!doctype html>
-<html lang="en">
-
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <title>GymMonitor</title>
@@ -8,20 +7,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script>
-    if (typeof global === 'undefined') {
-      window.global = window;
-    }
-    if (typeof Buffer === 'undefined') {
-      window.Buffer = {};
-    }
-    if (typeof process === 'undefined') {
-      window.process = { env: { NODE_ENV: 'production' } };
-    }
+    if (typeof global === 'undefined') { window.global = window; }
+    if (typeof Buffer === 'undefined') { window.Buffer = {}; }
+    if (typeof process === 'undefined') { window.process = { env: { NODE_ENV: 'production' } }; }
   </script>
 </head>
-
 <body>
   <app-root></app-root>
 </body>
-
 </html>

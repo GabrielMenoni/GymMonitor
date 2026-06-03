@@ -1,0 +1,12 @@
+<div class="min-h-screen flex flex-col" style="background-color: var(--color-bg-primary);">
+  <app-navbar (openCadastro)="cadastroOpen.set(true)" />
+
+  <!-- Conteúdo principal (vazio por ora) -->
+  <main class="flex-1 p-6">
+  </main>
+
+  <app-cadastro-modal
+    [isOpen]="cadastroOpen()"
+    (closed)="cadastroOpen.set(false)"
+  />
+</div>

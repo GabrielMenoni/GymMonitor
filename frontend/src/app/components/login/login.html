@@ -1,0 +1,105 @@
+<div
+  class="min-h-screen flex items-center justify-center"
+  style="background-color: var(--color-bg-primary);"
+>
+  <div
+    class="w-full max-w-sm rounded-2xl p-8 shadow-2xl flex flex-col gap-6"
+    style="background-color: var(--color-bg-surface);"
+  >
+    <!-- Logo -->
+    <div class="text-center">
+      <h1
+        class="text-2xl font-black tracking-widest"
+        style="color: var(--color-accent);"
+      >GYMMONITOR</h1>
+      <p class="text-sm mt-1" style="color: var(--color-text-muted);">Sistema de Gestão</p>
+    </div>
+
+    <!-- Role toggle -->
+    <div
+      class="flex rounded-lg p-1 gap-1"
+      style="background-color: var(--color-bg-primary);"
+    >
+      <button
+        type="button"
+        (click)="selectRole('FUNCIONARIO')"
+        class="flex-1 py-2 rounded-md text-sm font-semibold transition-colors cursor-pointer"
+        [style.background-color]="selectedRole() === 'FUNCIONARIO' ? 'var(--color-accent)' : 'transparent'"
+        [style.color]="selectedRole() === 'FUNCIONARIO' ? '#ffffff' : 'var(--color-text-muted)'"
+      >
+        Funcionário
+      </button>
+      <button
+        type="button"
+        (click)="selectRole('ADMIN')"
+        class="flex-1 py-2 rounded-md text-sm font-semibold transition-colors cursor-pointer"
+        [style.background-color]="selectedRole() === 'ADMIN' ? 'var(--color-accent)' : 'transparent'"
+        [style.color]="selectedRole() === 'ADMIN' ? '#ffffff' : 'var(--color-text-muted)'"
+      >
+        Admin
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Email</label>
+        <input
+          type="email"
+          formControlName="email"
+          (input)="clearError()"
+          placeholder="seu@email.com"
+          class="rounded-lg px-4 py-2.5 text-sm outline-none border transition-colors"
+          style="
+            background-color: var(--color-bg-elevated);
+            color: var(--color-text-primary);
+            border-color: var(--color-border);
+          "
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Senha</label>
+        <input
+          type="password"
+          formControlName="password"
+          (input)="clearError()"
+          placeholder="••••••"
+          class="rounded-lg px-4 py-2.5 text-sm outline-none border transition-colors"
+          style="
+            background-color: var(--color-bg-elevated);
+            color: var(--color-text-primary);
+            border-color: var(--color-border);
+          "
+        />
+      </div>
+
+      <!-- Error message -->
+      @if (errorMessage()) {
+        <p class="text-sm text-center" style="color: var(--color-danger);">
+          {{ errorMessage() }}
+        </p>
+      }
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        [disabled]="loading()"
+        class="rounded-lg py-2.5 font-semibold text-sm transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        style="background-color: var(--color-accent); color: #ffffff;"
+      >
+        @if (loading()) {
+          <span class="inline-flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+            Entrando...
+          </span>
+        } @else {
+          Entrar
+        }
+      </button>
+    </form>
+  </div>
+</div>

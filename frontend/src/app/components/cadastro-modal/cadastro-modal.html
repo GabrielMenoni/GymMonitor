@@ -1,0 +1,171 @@
+@if (isOpen()) {
+  <!-- Backdrop -->
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center p-4"
+    style="background-color: rgba(0,0,0,0.6);"
+    (click)="close()"
+  >
+    <!-- Modal -->
+    <div
+      class="w-full max-w-md rounded-2xl shadow-2xl z-50 flex flex-col gap-5 p-6"
+      style="background-color: var(--color-bg-surface);"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold" style="color: var(--color-text-primary);">
+          Cadastrar Usuário
+        </h2>
+        <button
+          type="button"
+          (click)="close()"
+          class="text-xl leading-none cursor-pointer"
+          style="color: var(--color-text-muted);"
+        >✕</button>
+      </div>
+
+      <!-- Tabs (apenas Admin vê) -->
+      @if (isAdmin) {
+        <div
+          class="flex rounded-lg p-1 gap-1"
+          style="background-color: var(--color-bg-primary);"
+        >
+          <button
+            type="button"
+            (click)="selectTab('ALUNO')"
+            class="flex-1 py-2 rounded-md text-sm font-semibold transition-colors cursor-pointer"
+            [style.background-color]="activeTab() === 'ALUNO' ? 'var(--color-accent)' : 'transparent'"
+            [style.color]="activeTab() === 'ALUNO' ? '#ffffff' : 'var(--color-text-muted)'"
+          >Aluno</button>
+          <button
+            type="button"
+            (click)="selectTab('FUNCIONARIO')"
+            class="flex-1 py-2 rounded-md text-sm font-semibold transition-colors cursor-pointer"
+            [style.background-color]="activeTab() === 'FUNCIONARIO' ? 'var(--color-accent)' : 'transparent'"
+            [style.color]="activeTab() === 'FUNCIONARIO' ? '#ffffff' : 'var(--color-text-muted)'"
+          >Funcionário</button>
+        </div>
+      }
+
+      <!-- Form Aluno -->
+      @if (activeTab() === 'ALUNO') {
+        <form [formGroup]="alunoForm" (ngSubmit)="submit()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Nome</label>
+            <input type="text" formControlName="name" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Email</label>
+            <input type="email" formControlName="email" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Data de Nascimento</label>
+            <input type="date" formControlName="birthDate" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Senha</label>
+            <input type="password" formControlName="password" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+
+          @if (errorMessage()) {
+            <p class="text-sm rounded-lg px-4 py-2.5" style="color: var(--color-danger); background-color: var(--color-bg-elevated);">
+              {{ errorMessage() }}
+            </p>
+          }
+          @if (successMessage()) {
+            <p class="text-sm rounded-lg px-4 py-2.5" style="color: var(--color-success); background-color: var(--color-bg-elevated);">
+              {{ successMessage() }}
+            </p>
+          }
+
+          <button type="submit" [disabled]="loading()"
+            class="rounded-lg py-2.5 font-semibold text-sm transition-colors cursor-pointer disabled:opacity-60"
+            style="background-color: var(--color-accent); color: #ffffff;">
+            @if (loading()) {
+              <span class="inline-flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Cadastrando...
+              </span>
+            } @else {
+              Cadastrar Aluno
+            }
+          </button>
+        </form>
+      }
+
+      <!-- Form Funcionário (apenas Admin) -->
+      @if (activeTab() === 'FUNCIONARIO' && isAdmin) {
+        <form [formGroup]="funcionarioForm" (ngSubmit)="submit()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Nome</label>
+            <input type="text" formControlName="name" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Email</label>
+            <input type="email" formControlName="email" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Cargo</label>
+            <input type="text" formControlName="position" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Salário</label>
+            <input type="number" formControlName="salary" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium" style="color: var(--color-text-secondary);">Senha</label>
+            <input type="password" formControlName="password" (input)="clearMessages()"
+              class="rounded-lg px-4 py-2.5 text-sm outline-none border"
+              style="background-color: var(--color-bg-elevated); color: var(--color-text-primary); border-color: var(--color-border);" />
+          </div>
+
+          @if (errorMessage()) {
+            <p class="text-sm rounded-lg px-4 py-2.5" style="color: var(--color-danger); background-color: var(--color-bg-elevated);">
+              {{ errorMessage() }}
+            </p>
+          }
+          @if (successMessage()) {
+            <p class="text-sm rounded-lg px-4 py-2.5" style="color: var(--color-success); background-color: var(--color-bg-elevated);">
+              {{ successMessage() }}
+            </p>
+          }
+
+          <button type="submit" [disabled]="loading()"
+            class="rounded-lg py-2.5 font-semibold text-sm transition-colors cursor-pointer disabled:opacity-60"
+            style="background-color: var(--color-accent); color: #ffffff;">
+            @if (loading()) {
+              <span class="inline-flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Cadastrando...
+              </span>
+            } @else {
+              Cadastrar Funcionário
+            }
+          </button>
+        </form>
+      }
+    </div>
+  </div>
+}
