@@ -69,8 +69,8 @@ export class CadastroModalComponent {
     }
 
     const url = tab === 'ALUNO'
-      ? `${environment.userServiceUrl}/auth/alunos/cadastro`
-      : `${environment.userServiceUrl}/auth/funcionarios/cadastro`;
+      ? `${environment.apiUrl}/auth/alunos/cadastro`
+      : `${environment.apiUrl}/auth/funcionarios/cadastro`;
 
     this.loading.set(true);
     this.clearMessages();

@@ -1,3 +1,7 @@
+networks:
+  gymmonitor-net:
+    driver: bridge
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -7,6 +11,8 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - gymmonitor-net
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 10s
@@ -18,10 +24,10 @@ services:
   redis:
     image: redis:7-alpine
     container_name: gymmonitor-redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - gymmonitor-net
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -30,13 +36,22 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  user-service:
+    build:
+      context: ./backend/gymmonitor/services/UserService
+      dockerfile: Dockerfile
+    container_name: gymmonitor-user-service
+    networks:
+      - gymmonitor-net
+    restart: unless-stopped
+
   access-control:
     build:
       context: ./backend/gymmonitor/services/AccessControl
       dockerfile: Dockerfile
     container_name: gymmonitor-access-control
-    ports:
-      - "8081:8081"
+    networks:
+      - gymmonitor-net
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: "5672"
@@ -45,22 +60,13 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  user-service:
-    build:
-      context: ./backend/gymmonitor/services/UserService
-      dockerfile: Dockerfile
-    container_name: gymmonitor-user-service
-    ports:
-      - "8082:8082"
-    restart: unless-stopped
-
   presence-service:
     build:
       context: ./backend/gymmonitor/services/PresenceService
       dockerfile: Dockerfile
     container_name: gymmonitor-presence-service
-    ports:
-      - "8083:8083"
+    networks:
+      - gymmonitor-net
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: "5672"
@@ -73,6 +79,21 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  api-gateway:
+    build:
+      context: ./backend/gymmonitor/services/ApiGateway
+      dockerfile: Dockerfile
+    container_name: gymmonitor-api-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - gymmonitor-net
+    depends_on:
+      - user-service
+      - access-control
+      - presence-service
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
@@ -80,6 +101,8 @@ services:
     container_name: gymmonitor-frontend
     ports:
       - "4200:4200"
+    networks:
+      - gymmonitor-net
     environment:
       PORT: 4200
     restart: unless-stopped

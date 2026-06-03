@@ -15,5 +15,6 @@
         <module>services/AccessControl</module>
         <module>services/UserService</module>
         <module>services/PresenceService</module>
+        <module>services/ApiGateway</module>
     </modules>
 </project>

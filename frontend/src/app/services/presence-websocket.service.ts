@@ -3,6 +3,7 @@ import { Injectable, OnDestroy, PLATFORM_ID, inject, signal } from '@angular/cor
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class PresenceWebsocketService implements OnDestroy {
@@ -10,6 +11,7 @@ export class PresenceWebsocketService implements OnDestroy {
   readonly connectionStatus = signal<'connected' | 'disconnected' | 'error'>('disconnected');
 
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly auth = inject(AuthService);
   private client?: Client;
 
   constructor() {
@@ -18,9 +20,9 @@ export class PresenceWebsocketService implements OnDestroy {
     }
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(environment.presenceServiceUrl + '/ws'),
+      webSocketFactory: () => new SockJS(environment.apiUrl + '/presence/ws'),
       connectHeaders: {
-        Authorization: `Bearer ${environment.adminToken}`,
+        Authorization: `Bearer ${this.auth.getToken() ?? ''}`,
       },
       reconnectDelay: 5000,
       onConnect: () => {

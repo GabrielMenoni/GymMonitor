@@ -17,7 +17,7 @@ interface TokenResponse {
 }
 
 export interface JwtPayload {
-  sub: string;      // email
+  sub: string;
   role: UserRole;
   userId: string;
   exp: number;
@@ -35,7 +35,7 @@ export class AuthService {
       : '/auth/funcionarios/login';
 
     return this.http
-      .post<TokenResponse>(`${environment.userServiceUrl}${path}`, { email, password })
+      .post<TokenResponse>(`${environment.apiUrl}${path}`, { email, password })
       .pipe(tap(res => this.saveToken(res.token)));
   }
 
