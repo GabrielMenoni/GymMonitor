@@ -26,7 +26,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/api/auth/funcionarios/login",
             "/api/auth/admin/login",
             "/api/auth/admin/cadastro",
-            "/actuator/health"
+            "/actuator/health",
+            "/api/presence/ws"  // SockJS negotiation is unauthenticated; auth happens in STOMP CONNECT frame
     );
 
     @Value("${security.jwt.secret}")

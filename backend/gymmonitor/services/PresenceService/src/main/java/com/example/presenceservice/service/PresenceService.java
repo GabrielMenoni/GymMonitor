@@ -2,6 +2,7 @@ package com.example.presenceservice.service;
 
 import com.example.presenceservice.dto.AccessEvent;
 import com.example.presenceservice.dto.PresenceCountResponse;
+import com.example.presenceservice.dto.PresenceHistoryResponse;
 import com.example.presenceservice.dto.PresenceUsersResponse;
 import com.example.presenceservice.repository.RedisPresenceRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,8 +45,14 @@ public class PresenceService {
         return new PresenceUsersResponse(repository.listUsersInside());
     }
 
+    public PresenceHistoryResponse getHistory(long from, long to) {
+        return new PresenceHistoryResponse(repository.getHistory(from, to));
+    }
+
     private void broadcastCount() {
+        long count = repository.countInside();
+        repository.saveHistorySnapshot(count);
         messagingTemplate.convertAndSend("/topic/presence/count",
-                new PresenceCountResponse(repository.countInside()));
+                new PresenceCountResponse(count));
     }
 }

@@ -77,9 +77,7 @@ services:
     restart: unless-stopped
 
   user-service:
-    build:
-      context: ./backend/gymmonitor/services/UserService
-      dockerfile: Dockerfile
+    image: gmenoni/gymmonitor-user-service:latest
     container_name: gymmonitor-user-service
     networks:
       - gymmonitor-net
@@ -99,9 +97,7 @@ services:
     restart: unless-stopped
 
   access-control:
-    build:
-      context: ./backend/gymmonitor/services/AccessControl
-      dockerfile: Dockerfile
+    image: gmenoni/gymmonitor-access-control:latest
     container_name: gymmonitor-access-control
     networks:
       - gymmonitor-net
@@ -125,9 +121,7 @@ services:
     restart: unless-stopped
 
   presence-service:
-    build:
-      context: ./backend/gymmonitor/services/PresenceService
-      dockerfile: Dockerfile
+    image: gmenoni/gymmonitor-presence-service:latest
     container_name: gymmonitor-presence-service
     networks:
       - gymmonitor-net
@@ -150,9 +144,7 @@ services:
     restart: unless-stopped
 
   api-gateway:
-    build:
-      context: ./backend/gymmonitor/services/ApiGateway
-      dockerfile: Dockerfile
+    image: gmenoni/gymmonitor-api-gateway:latest
     container_name: gymmonitor-api-gateway
     ports:
       - "8080:8080"
@@ -174,9 +166,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: gmenoni/gymmonitor-frontend:latest
     container_name: gymmonitor-frontend
     ports:
       - "4200:4200"
@@ -184,38 +174,6 @@ services:
       - gymmonitor-net
     environment:
       PORT: 4200
-    restart: unless-stopped
-
-  seed:
-    build:
-      context: ./scripts/seed
-      dockerfile: Dockerfile
-    container_name: gymmonitor-seed
-    networks:
-      - gymmonitor-net
-    environment:
-      GATEWAY_URL: http://api-gateway:8080/api
-    depends_on:
-      api-gateway:
-        condition: service_healthy
-    restart: "no"
-
-  simulator:
-    build:
-      context: ./scripts/simulator
-      dockerfile: Dockerfile
-    container_name: gymmonitor-simulator
-    networks:
-      - gymmonitor-net
-    environment:
-      GATEWAY_URL: http://api-gateway:8080/api
-      TICK_SECONDS: "10"
-      MAX_SIMULTANEOUS: "80"
-      CHECKINS_PER_TICK: "5"
-      CHECKOUTS_PER_TICK: "4"
-    depends_on:
-      api-gateway:
-        condition: service_healthy
     restart: unless-stopped
 
 volumes:

@@ -2,6 +2,8 @@ package com.example.presenceservice.service;
 
 import com.example.presenceservice.dto.AccessEvent;
 import com.example.presenceservice.dto.PresenceCountResponse;
+import com.example.presenceservice.dto.PresenceHistoryPoint;
+import com.example.presenceservice.dto.PresenceHistoryResponse;
 import com.example.presenceservice.dto.PresenceUsersResponse;
 import com.example.presenceservice.dto.UserPresenceInfo;
 import com.example.presenceservice.repository.RedisPresenceRepository;
@@ -128,5 +130,30 @@ class PresenceServiceTest {
 
         assertEquals(1, response.users().size());
         assertEquals(info, response.users().get(0));
+    }
+
+    @Test
+    void broadcastCount_salvaHistoricoAposCheckin() {
+        AccessEvent event = buildEvent("CHECKIN");
+        when(repository.isEventProcessed(event.eventId())).thenReturn(false);
+        when(repository.countInside()).thenReturn(5L);
+
+        presenceService.handleCheckin(event);
+
+        verify(repository).saveHistorySnapshot(5L);
+    }
+
+    @Test
+    void getHistory_delegaAoRepositorio() {
+        long from = 1000L;
+        long to = 2000L;
+        PresenceHistoryPoint point = new PresenceHistoryPoint(1500L, 10L);
+        when(repository.getHistory(from, to)).thenReturn(List.of(point));
+
+        PresenceHistoryResponse response = presenceService.getHistory(from, to);
+
+        assertEquals(1, response.points().size());
+        assertEquals(1500L, response.points().get(0).timestamp());
+        assertEquals(10L, response.points().get(0).count());
     }
 }

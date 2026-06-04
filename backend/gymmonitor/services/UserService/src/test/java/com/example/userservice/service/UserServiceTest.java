@@ -98,4 +98,22 @@ class UserServiceTest {
 
         assertEquals(0, result.size());
     }
+
+    @Test
+    void contarAlunos_retornaContagem() {
+        when(alunoRepository.count()).thenReturn(2000L);
+
+        long result = userService.contarAlunos();
+
+        assertEquals(2000L, result);
+    }
+
+    @Test
+    void contarFuncionarios_retornaContagem() {
+        when(funcionarioRepository.count()).thenReturn(10L);
+
+        long result = userService.contarFuncionarios();
+
+        assertEquals(10L, result);
+    }
 }

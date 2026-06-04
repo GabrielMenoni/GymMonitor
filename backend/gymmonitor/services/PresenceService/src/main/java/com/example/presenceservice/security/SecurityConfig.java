@@ -22,6 +22,8 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/presence/count").hasAnyRole("ADMIN", "FUNCIONARIO")
+                        .requestMatchers("/presence/history").hasAnyRole("ADMIN", "FUNCIONARIO")
                         .requestMatchers("/presence/**").hasRole("ADMIN")
                         .anyRequest().hasRole("ADMIN"))
                 .exceptionHandling(ex -> ex

@@ -28,11 +28,33 @@ The architecture follows **Event-Driven** and **CQRS** principles. The **AccessC
 
 ## Running with Docker
 
+The `docker-compose.yml` uses pre-built images from Docker Hub (`gmenoni/gymmonitor-*`). No local JDK or Node.js required.
+
+### Start everything
+
 ```bash
-docker compose up --build
+docker compose up
 ```
 
-All services, databases, RabbitMQ, Redis, and demo scripts start automatically. No local JDK or Node.js required.
+### Start in background
+
+```bash
+docker compose up -d
+```
+
+### Stop all containers
+
+```bash
+docker compose down
+```
+
+### Stop and remove all data (databases, queues)
+
+```bash
+docker compose down -v
+```
+
+All services, databases, RabbitMQ, and Redis start automatically.
 
 | URL | Description |
 |---|---|
@@ -44,15 +66,75 @@ All services, databases, RabbitMQ, Redis, and demo scripts start automatically. 
 
 ## Demo Data
 
-On first startup, the **seed** container automatically populates the database:
+The default admin account is created automatically on first startup by the UserService. To populate the database with demo employees and students, run the seed script locally after the containers are up.
+
+### Requirements
+
+Python 3.12+ must be installed locally.
+
+```bash
+cd scripts/seed
+pip install -r requirements.txt
+```
+
+### Running
+
+```bash
+cd scripts/seed
+python seed.py
+```
+
+This creates:
 
 | Type | Count |
 |---|---|
-| Admin | 1 |
+| Admin | 1 (auto-created by UserService) |
 | Funcionários (employees) | 10 |
 | Alunos (students) | 2000 |
 
-The **simulator** container runs continuously after seeding, making realistic checkin/checkout calls with time-of-day variation (busier during 6–9h and 17–20h).
+The seed is **idempotent** — running it multiple times is safe. Duplicate entries are silently skipped.
+
+## Traffic Simulator
+
+The simulator is a local Python script that continuously calls the checkin/checkout APIs, generating realistic presence data for the dashboard.
+
+### Requirements
+
+Python 3.12+ must be installed locally.
+
+```bash
+cd scripts/simulator
+pip install -r requirements.txt
+```
+
+### Running
+
+With Docker containers running, start the simulator in a separate terminal:
+
+```bash
+cd scripts/simulator
+python simulator.py
+```
+
+### Configuration via environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `GATEWAY_URL` | `http://localhost:8080/api` | API Gateway base URL |
+| `TICK_SECONDS` | `10` | Interval between ticks (seconds) |
+| `MAX_SIMULTANEOUS` | `80` | Max users inside at the same time |
+| `CHECKINS_PER_TICK` | `5` | Checkins attempted per tick |
+| `CHECKOUTS_PER_TICK` | `4` | Checkouts attempted per tick |
+
+Example — simulate a peak hour with higher volume:
+
+```bash
+TICK_SECONDS=5 MAX_SIMULTANEOUS=150 CHECKINS_PER_TICK=15 CHECKOUTS_PER_TICK=5 python simulator.py
+```
+
+### Stopping
+
+Press `Ctrl+C` to stop the simulator.
 
 ## Credentials
 
@@ -80,31 +162,3 @@ Where `NN` is a zero-padded number from `01` to `10`.
 | Password | `AlunoNNNN@` | `Aluno0001@` |
 
 Where `NNNN` is a zero-padded number from `0001` to `2000`.
-
-## Frontend
-
-The Angular 21 frontend communicates exclusively with the API Gateway on port 8080. Features:
-
-- **Login page** — role toggle (Funcionário / Admin), JWT stored in `localStorage`
-- **Main page** — navbar with theme toggle (dark/light), logout, and "+ Cadastrar" button
-- **Registration modal** — Admin sees tabs for Aluno and Funcionário; Funcionário sees only Aluno form
-- **404 page** — shown for unknown routes and unauthorized access
-- **Theme** — dark by default, persisted in `localStorage`
-- **Protected routes** — `authGuard` blocks unauthenticated access; `loggedInGuard` redirects already-logged-in users away from `/login`
-
-## Architecture Notes
-
-### API Gateway
-
-Spring Cloud Gateway (reactive/WebFlux) is the sole externally-exposed service:
-- Routes `/api/auth/**` → UserService, `/api/access/**` → AccessControl, `/api/presence/**` → PresenceService
-- `StripPrefix` removes `/api` before forwarding
-- Global JWT filter validates tokens on all non-public routes
-- CORS configured centrally via `CorsWebFilter`
-- All microservices communicate over the internal `gymmonitor-net` Docker network using service names
-
-### Database
-
-UserService and AccessControl use separate PostgreSQL 16 instances (`gymmonitor_users` and `gymmonitor_access`). Schema is managed via Docker init SQL scripts. Tests use H2 in-memory — no PostgreSQL required to run `./mvnw test`.
-
-The `sessoes_acesso` table uses a partial unique index (`WHERE saida_em IS NULL`) to enforce one open session per user at the database level.

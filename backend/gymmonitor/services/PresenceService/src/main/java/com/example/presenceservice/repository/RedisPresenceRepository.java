@@ -1,5 +1,6 @@
 package com.example.presenceservice.repository;
 
+import com.example.presenceservice.dto.PresenceHistoryPoint;
 import com.example.presenceservice.dto.UserPresenceInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +23,8 @@ public class RedisPresenceRepository {
     private static final String INSIDE_KEY = "gymmonitor:presence:inside";
     private static final String USER_KEY_PREFIX = "gymmonitor:presence:user:";
     private static final String EVENT_KEY_PREFIX = "gymmonitor:presence:event:";
+    private static final String HISTORY_KEY = "gymmonitor:presence:history";
+    private static final long HISTORY_TTL_HOURS = 24;
 
     private final RedisTemplate<String, String> redisTemplate;
 
@@ -84,6 +88,31 @@ public class RedisPresenceRepository {
             ));
         }
         return result;
+    }
+
+    public void saveHistorySnapshot(long count) {
+        long now = System.currentTimeMillis();
+        String member = now + ":" + count;
+        redisTemplate.opsForZSet().add(HISTORY_KEY, member, now);
+    }
+
+    public List<PresenceHistoryPoint> getHistory(long fromEpochMillis, long toEpochMillis) {
+        evictOldHistory();
+        Set<String> raw = redisTemplate.opsForZSet()
+                .rangeByScore(HISTORY_KEY, fromEpochMillis, toEpochMillis);
+        if (raw == null) return List.of();
+        return raw.stream()
+                .map(m -> {
+                    String[] parts = m.split(":", 2);
+                    return new PresenceHistoryPoint(Long.parseLong(parts[0]), Long.parseLong(parts[1]));
+                })
+                .sorted(Comparator.comparingLong(PresenceHistoryPoint::timestamp))
+                .toList();
+    }
+
+    private void evictOldHistory() {
+        long cutoff = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(HISTORY_TTL_HOURS);
+        redisTemplate.opsForZSet().removeRangeByScore(HISTORY_KEY, Double.NEGATIVE_INFINITY, cutoff);
     }
 
     private void evictExpiredSessions() {

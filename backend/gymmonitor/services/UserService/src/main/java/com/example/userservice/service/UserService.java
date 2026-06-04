@@ -38,4 +38,14 @@ public class UserService {
                         f.getPosition(), f.getSalary()))
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public long contarAlunos() {
+        return alunoRepository.count();
+    }
+
+    @Transactional(readOnly = true)
+    public long contarFuncionarios() {
+        return funcionarioRepository.count();
+    }
 }

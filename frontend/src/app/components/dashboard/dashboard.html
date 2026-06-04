@@ -1,0 +1,100 @@
+<div class="p-6 flex flex-col gap-6">
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 gap-4"
+       [class.sm:grid-cols-3]="!isAdmin"
+       [class.sm:grid-cols-4]="isAdmin">
+
+    <!-- Alunos na academia (todos) -->
+    <div class="rounded-xl p-5 flex flex-col gap-1"
+         style="background-color: var(--color-bg-surface);">
+      <span class="text-xs font-semibold uppercase tracking-wider"
+            style="color: var(--color-text-muted);">Alunos na academia</span>
+      <span class="text-4xl font-black"
+            style="color: var(--color-accent);">
+        {{ presenceCount() !== null ? presenceCount() : '—' }}
+      </span>
+      <span class="text-xs" style="color: var(--color-text-muted);">
+        @switch (connectionStatus()) {
+          @case ('connected') { <span style="color: var(--color-success);">● ao vivo</span> }
+          @case ('error')     { <span style="color: var(--color-danger);">● sem autorização</span> }
+          @default            { <span>● reconectando...</span> }
+        }
+      </span>
+    </div>
+
+    <!-- Total alunos cadastrados (todos) -->
+    <div class="rounded-xl p-5 flex flex-col gap-1"
+         style="background-color: var(--color-bg-surface);">
+      <span class="text-xs font-semibold uppercase tracking-wider"
+            style="color: var(--color-text-muted);">Total de alunos</span>
+      <span class="text-4xl font-black"
+            style="color: var(--color-text-primary);">
+        {{ totalAlunos() !== null ? totalAlunos() : '—' }}
+      </span>
+      <span class="text-xs" style="color: var(--color-text-muted);">cadastrados</span>
+    </div>
+
+    <!-- Pico do dia (todos) -->
+    <div class="rounded-xl p-5 flex flex-col gap-1"
+         style="background-color: var(--color-bg-surface);">
+      <span class="text-xs font-semibold uppercase tracking-wider"
+            style="color: var(--color-text-muted);">Pico hoje</span>
+      <span class="text-4xl font-black"
+            style="color: var(--color-text-primary);">
+        {{ peakCount() > 0 ? peakCount() : '—' }}
+      </span>
+      <span class="text-xs" style="color: var(--color-text-muted);">
+        @if (peakHour()) { às {{ peakHour() }} } @else { aguardando dados }
+      </span>
+    </div>
+
+    <!-- Funcionários em expediente (admin) -->
+    @if (isAdmin) {
+      <div class="rounded-xl p-5 flex flex-col gap-1"
+           style="background-color: var(--color-bg-surface);">
+        <span class="text-xs font-semibold uppercase tracking-wider"
+              style="color: var(--color-text-muted);">Funcionários presentes</span>
+        <span class="text-4xl font-black"
+              style="color: var(--color-success);">
+          {{ funcionariosPresentes() !== null ? funcionariosPresentes() : '—' }}
+        </span>
+        <span class="text-xs" style="color: var(--color-text-muted);">em expediente</span>
+      </div>
+    }
+
+    <!-- Total funcionários cadastrados (admin) -->
+    @if (isAdmin) {
+      <div class="rounded-xl p-5 flex flex-col gap-1"
+           style="background-color: var(--color-bg-surface);">
+        <span class="text-xs font-semibold uppercase tracking-wider"
+              style="color: var(--color-text-muted);">Total de funcionários</span>
+        <span class="text-4xl font-black"
+              style="color: var(--color-text-primary);">
+          {{ totalFuncionarios() !== null ? totalFuncionarios() : '—' }}
+        </span>
+        <span class="text-xs" style="color: var(--color-text-muted);">cadastrados</span>
+      </div>
+    }
+
+  </div>
+
+  <!-- Gráfico de linha -->
+  <div class="rounded-xl p-5" style="background-color: var(--color-bg-surface);">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm font-semibold"
+            style="color: var(--color-text-secondary);">Presença — última hora</span>
+      @if (!hasHistory()) {
+        <span class="text-xs" style="color: var(--color-text-muted);">Aguardando dados do WebSocket...</span>
+      }
+    </div>
+    <div style="height: 220px; position: relative;">
+      <canvas baseChart
+              [data]="chartData"
+              [options]="chartOptions"
+              type="line">
+      </canvas>
+    </div>
+  </div>
+
+</div>

@@ -25,6 +25,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/funcionarios/cadastro").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/user-service/alunos").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/user-service/funcionarios").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/user-service/alunos/count").hasAnyRole("ADMIN", "FUNCIONARIO")
+                        .requestMatchers(HttpMethod.GET, "/user-service/funcionarios/count").hasRole("ADMIN")
                         .requestMatchers(
                                 "/auth/alunos/login",
                                 "/auth/funcionarios/login",

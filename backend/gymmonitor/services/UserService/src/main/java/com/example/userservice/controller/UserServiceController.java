@@ -40,4 +40,14 @@ public class UserServiceController {
     public List<FuncionarioResponse> listarFuncionarios() {
         return userService.listarFuncionarios();
     }
+
+    @GetMapping("/alunos/count")
+    public Map<String, Long> contarAlunos() {
+        return Map.of("count", userService.contarAlunos());
+    }
+
+    @GetMapping("/funcionarios/count")
+    public Map<String, Long> contarFuncionarios() {
+        return Map.of("count", userService.contarFuncionarios());
+    }
 }
