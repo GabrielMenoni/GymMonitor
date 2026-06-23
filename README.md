@@ -10,7 +10,7 @@ The architecture follows **Event-Driven** and **CQRS** principles. The **AccessC
 |---|---|
 | Backend | Java 17 · Spring Boot 3.5 · Maven multi-module |
 | Gateway | Spring Cloud Gateway 2025.0.x (WebFlux) |
-| Frontend | Angular 21 · Tailwind CSS 4 · SSR |
+| Frontend | Angular 21 · Tailwind CSS 4 · Chart.js · SSR |
 | Database | PostgreSQL 16 (UserService, AccessControl) · Redis (PresenceService) |
 | Messaging | RabbitMQ |
 | Auth | JWT stateless · Spring Security |
@@ -66,23 +66,13 @@ All services, databases, RabbitMQ, and Redis start automatically.
 
 ## Demo Data
 
-The default admin account is created automatically on first startup by the UserService. To populate the database with demo employees and students, run the seed script locally after the containers are up.
-
-### Requirements
-
-Python 3.12+ must be installed locally.
+The default admin account is created automatically on first startup by the UserService. To populate the database with demo employees and students, run the seed script using Docker (no local Python required):
 
 ```bash
-cd scripts/seed
-pip install -r requirements.txt
+docker compose run --rm seed
 ```
 
-### Running
-
-```bash
-cd scripts/seed
-python seed.py
-```
+The seed is **idempotent** — it checks whether the data already exists before running. Re-running it after the database has been populated is safe and has no effect.
 
 This creates:
 
@@ -92,27 +82,19 @@ This creates:
 | Funcionários (employees) | 10 |
 | Alunos (students) | 2000 |
 
-The seed is **idempotent** — running it multiple times is safe. Duplicate entries are silently skipped.
-
 ## Traffic Simulator
 
-The simulator is a local Python script that continuously calls the checkin/checkout APIs, generating realistic presence data for the dashboard.
+The simulator continuously calls the checkin/checkout APIs, generating realistic presence data for the dashboard. Run it using Docker (no local Python required):
 
-### Requirements
+```bash
+docker compose run --rm simulator
+```
 
-Python 3.12+ must be installed locally.
+Or, if you prefer, run it locally in a separate terminal while containers are up:
 
 ```bash
 cd scripts/simulator
 pip install -r requirements.txt
-```
-
-### Running
-
-With Docker containers running, start the simulator in a separate terminal:
-
-```bash
-cd scripts/simulator
 python simulator.py
 ```
 
@@ -131,8 +113,6 @@ Example — simulate a peak hour with higher volume:
 ```bash
 TICK_SECONDS=5 MAX_SIMULTANEOUS=150 CHECKINS_PER_TICK=15 CHECKOUTS_PER_TICK=5 python simulator.py
 ```
-
-### Stopping
 
 Press `Ctrl+C` to stop the simulator.
 

@@ -103,8 +103,25 @@ def cadastrar_aluno(token, index):
     return None
 
 
+def is_already_seeded():
+    try:
+        r = requests.post(
+            f"{GATEWAY_URL}/auth/funcionarios/login",
+            json={"email": "funcionario01@gymmonitor.com", "password": "Func01@123"},
+            timeout=10,
+        )
+        return r.status_code == 200
+    except requests.exceptions.RequestException:
+        return False
+
+
 def main():
     wait_for_gateway()
+
+    if is_already_seeded():
+        print("Seed já foi executado anteriormente. Pulando.")
+        sys.exit(0)
+
     token = login_admin()
 
     # Funcionários
