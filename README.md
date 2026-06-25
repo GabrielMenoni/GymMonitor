@@ -164,6 +164,22 @@ O Helm Chart em `helm/gymmonitor/` implanta toda a aplicação no Minikube com u
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm 3](https://helm.sh/docs/intro/install/)
 
+### Build e exportação das imagens
+
+O script `scripts/build-and-load.sh` builda todas as imagens e as carrega diretamente no Minikube (sem necessidade de DockerHub):
+
+```bash
+# Executar a partir da raiz do repositório
+bash scripts/build-and-load.sh
+```
+
+Opções disponíveis:
+
+| Opção | Efeito |
+|---|---|
+| `--skip-build` | Pula o `docker build` (carrega imagens já existentes localmente) |
+| `--skip-load` | Pula o `minikube image load` (apenas builda) |
+
 ### Deploy
 
 ```bash
