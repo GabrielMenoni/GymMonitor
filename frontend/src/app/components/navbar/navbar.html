@@ -1,15 +1,9 @@
-<nav
-  class="w-full px-6 py-3 flex items-center justify-between border-b"
-  style="
+<nav class="w-full px-6 py-3 flex items-center justify-between border-b" style="
     background-color: var(--color-bg-surface);
     border-color: var(--color-border);
-  "
->
+  ">
   <!-- Logo -->
-  <span
-    class="text-lg font-black tracking-widest"
-    style="color: var(--color-accent);"
-  >GYMMONITOR</span>
+  <span class="text-lg font-black tracking-widest" style="color: var(--color-accent);">GYMMONITOR</span>
 
   <!-- Right side -->
   <div class="flex items-center gap-3">
@@ -19,39 +13,29 @@
     </span>
 
     <!-- Theme toggle -->
-    <button
-      type="button"
-      (click)="theme.toggle()"
-      class="p-2 rounded-lg transition-colors cursor-pointer"
+    <button type="button" (click)="theme.toggle()" class="p-2 rounded-lg transition-colors cursor-pointer"
       style="background-color: var(--color-bg-elevated); color: var(--color-text-secondary);"
-      [title]="theme.isDark() ? 'Modo claro' : 'Modo escuro'"
-    >
+      [title]="theme.isDark() ? 'Modo claro' : 'Modo escuro'">
       @if (theme.isDark()) {
-        ☀️
+      ☀️
       } @else {
-        🌙
+      🌙
       }
     </button>
 
     <!-- Cadastrar -->
     @if (canCadastrar) {
-      <button
-        type="button"
-        (click)="openCadastro.emit()"
-        class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
-        style="background-color: var(--color-accent); color: #ffffff;"
-      >
-        + Cadastrar
-      </button>
+    <button type="button" (click)="openCadastro.emit()"
+      class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+      style="background-color: var(--color-accent); color: #ffffff;">
+      Cadastrar
+    </button>
     }
 
     <!-- Logout -->
-    <button
-      type="button"
-      (click)="logout()"
+    <button type="button" (click)="logout()"
       class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
-      style="background-color: var(--color-bg-elevated); color: var(--color-danger);"
-    >
+      style="background-color: var(--color-bg-elevated); color: var(--color-danger);">
       Sair
     </button>
   </div>

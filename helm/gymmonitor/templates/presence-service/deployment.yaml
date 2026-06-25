@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: presence-service
+  labels:
+    {{- include "gymmonitor.labels" . | nindent 4 }}
+    app: presence-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: presence-service
+  template:
+    metadata:
+      labels:
+        app: presence-service
+    spec:
+      initContainers:
+        - name: wait-rabbitmq
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z rabbitmq 5672; do echo "aguardando rabbitmq..."; sleep 2; done']
+        - name: wait-redis
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z redis 6379; do echo "aguardando redis..."; sleep 2; done']
+      containers:
+        - name: presence-service
+          image: {{ .Values.images.presenceService }}
+          env:
+            - name: SPRING_RABBITMQ_HOST
+              value: rabbitmq
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+            - name: SPRING_DATA_REDIS_HOST
+              value: redis
+            - name: SPRING_DATA_REDIS_PORT
+              value: "6379"
+          ports:
+            - containerPort: 8083
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 10

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-access
+  labels:
+    {{- include "gymmonitor.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres-access
+  ports:
+    - port: 5432
+      targetPort: 5432

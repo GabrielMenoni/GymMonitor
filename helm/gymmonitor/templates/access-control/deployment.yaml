@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: access-control
+  labels:
+    {{- include "gymmonitor.labels" . | nindent 4 }}
+    app: access-control
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: access-control
+  template:
+    metadata:
+      labels:
+        app: access-control
+    spec:
+      initContainers:
+        - name: wait-postgres-access
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z postgres-access 5432; do echo "aguardando postgres-access..."; sleep 2; done']
+        - name: wait-rabbitmq
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z rabbitmq 5672; do echo "aguardando rabbitmq..."; sleep 2; done']
+      containers:
+        - name: access-control
+          image: {{ .Values.images.accessControl }}
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres-access:5432/gymmonitor_access
+            - name: SPRING_DATASOURCE_USERNAME
+              value: gymmonitor
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gymmonitor-secrets
+                  key: postgres-password
+            - name: SPRING_RABBITMQ_HOST
+              value: rabbitmq
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+          ports:
+            - containerPort: 8081
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
