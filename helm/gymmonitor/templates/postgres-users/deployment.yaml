@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-users
+  labels:
+    {{- include "gymmonitor.labels" . | nindent 4 }}
+    app: postgres-users
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-users
+  template:
+    metadata:
+      labels:
+        app: postgres-users
+    spec:
+      containers:
+        - name: postgres-users
+          image: {{ .Values.images.postgres }}
+          env:
+            - name: POSTGRES_DB
+              value: gymmonitor_users
+            - name: POSTGRES_USER
+              value: gymmonitor
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gymmonitor-secrets
+                  key: postgres-password
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: init.sql
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-users-pvc
+        - name: init-sql
+          configMap:
+            name: postgres-users-init

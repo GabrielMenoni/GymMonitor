@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    {{- include "gymmonitor.labels" . | nindent 4 }}
+    app: frontend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      initContainers:
+        - name: wait-api-gateway
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z api-gateway 8080; do echo "aguardando api-gateway..."; sleep 2; done']
+      containers:
+        - name: frontend
+          image: {{ .Values.images.frontend }}
+          env:
+            - name: PORT
+              value: "4200"
+          ports:
+            - containerPort: 4200
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4200
+            initialDelaySeconds: 15
+            periodSeconds: 10

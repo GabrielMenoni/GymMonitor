@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  labels:
+    {{- include "gymmonitor.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: user-service
+  ports:
+    - port: 8082
+      targetPort: 8082

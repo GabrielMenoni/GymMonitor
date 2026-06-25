@@ -1,0 +1,21 @@
+replicaCount: 1
+
+images:
+  userService: gmenoni/gymmonitor-user-service:latest
+  accessControl: gmenoni/gymmonitor-access-control:latest
+  presenceService: gmenoni/gymmonitor-presence-service:latest
+  apiGateway: gmenoni/gymmonitor-api-gateway:latest
+  frontend: gmenoni/gymmonitor-frontend:latest
+  seed: gmenoni/gymmonitor-seed:latest
+  postgres: postgres:16-alpine
+  redis: redis:7-alpine
+  rabbitmq: rabbitmq:3-management
+
+storage:
+  postgresUsers: 1Gi
+  postgresAccess: 1Gi
+  redis: 512Mi
+  rabbitmq: 512Mi
+
+ingress:
+  host: k8s.local

@@ -1,96 +1,134 @@
 # GymMonitor
 
-GymMonitor is a distributed microservices system that simulates access control for a gym, allowing users to check in and check out while providing a real-time view of how many people are currently inside.
+GymMonitor é um sistema distribuído de controle de acesso para academias. Alunos e funcionários fazem check-in e check-out, e um painel em tempo real exibe quantas pessoas estão presentes no momento.
 
-The architecture follows **Event-Driven** and **CQRS** principles. The **AccessControl** service acts as the source of truth, handling check-in/check-out operations, enforcing business rules, and publishing events to RabbitMQ. The **PresenceService** consumes those events to maintain a real-time projection of the current gym state, storing it in Redis for fast access. This data is exposed via REST and pushed to clients over **WebSocket (STOMP)**, enabling instant frontend updates without polling. A dedicated **UserService** handles registration and authentication, issuing JWT tokens with role-based access control (Admin, Employee, Student). An **API Gateway** sits in front of all services as the single entry point, centralizing CORS and JWT validation.
+## Arquitetura
 
-## Stack
+O sistema é composto por quatro microserviços Java e um frontend Angular, todos comunicando-se internamente através de um API Gateway:
 
-| Layer | Technology |
+```
+                    ┌─────────────────────────────────────────────┐
+                    │             Ponto de entrada único           │
+                    │   Docker: localhost:8080                     │
+                    │   Minikube: k8s.local (Ingress nginx)        │
+                    └──────────────┬──────────────┬───────────────┘
+                                   │              │
+                       ┌───────────▼──┐    ┌──────▼──────┐
+                       │  ApiGateway  │    │  Frontend   │
+                       │   :8080      │    │   :4200     │
+                       └──┬───┬───┬───┘    └─────────────┘
+                          │   │   │
+           ┌──────────────┘   │   └──────────────────┐
+           │                  │                       │
+┌──────────▼──┐    ┌──────────▼──┐    ┌──────────────▼──┐
+│ UserService │    │AccessControl│    │PresenceService  │
+│   :8082     │    │   :8081     │    │   :8083         │
+└──────┬──────┘    └──────┬──────┘    └───────┬─────────┘
+       │                  │                   │        │
+┌──────▼──────┐    ┌──────▼──────┐    ┌───────▼──┐  ┌──▼────┐
+│  PostgreSQL │    │  PostgreSQL │    │ RabbitMQ │  │ Redis │
+│   (users)   │    │  (access)   │    │  :5672   │  │ :6379 │
+└─────────────┘    └─────────────┘    └──────────┘  └───────┘
+```
+
+| Serviço | Responsabilidade |
 |---|---|
-| Backend | Java 17 · Spring Boot 3.5 · Maven multi-module |
-| Gateway | Spring Cloud Gateway 2025.0.x (WebFlux) |
-| Frontend | Angular 21 · Tailwind CSS 4 · Chart.js · SSR |
-| Database | PostgreSQL 16 (UserService, AccessControl) · Redis (PresenceService) |
-| Messaging | RabbitMQ |
-| Auth | JWT stateless · Spring Security |
-| Scripts | Python 3.12 (seed + simulator) |
+| **ApiGateway** | Único ponto de entrada externo — roteamento, CORS e validação JWT |
+| **UserService** | Cadastro e autenticação de usuários, emissão de tokens JWT |
+| **AccessControl** | Registro de check-in / check-out, publica eventos no RabbitMQ |
+| **PresenceService** | Mantém o estado de presença em tempo real via Redis e WebSocket |
+| **Frontend** | Interface Angular com dashboard de presença e gráfico histórico |
 
-## Services
+**Stack:** Java 17 · Spring Boot 3.5 · Angular 21 · PostgreSQL 16 · Redis · RabbitMQ · Python 3.12
 
-| Service | Internal Port | Responsibility |
+## Credenciais
+
+Criadas automaticamente pelo seed na primeira inicialização.
+
+### Admin
+
+| Campo | Valor |
+|---|---|
+| Email | `GymMonitor@gmail.com` |
+| Senha | `GymAdmin@123` |
+
+### Funcionários
+
+| Campo | Padrão | Exemplo |
 |---|---|---|
-| ApiGateway | 8080 ← único exposto | Routing, CORS, JWT validation |
-| UserService | 8082 (internal) | Registration, login, JWT issuance |
-| AccessControl | 8081 (internal) | Check-in / check-out, event publishing |
-| PresenceService | 8083 (internal) | Real-time presence projection (REST + WebSocket) |
-| Frontend | 4200 | Angular UI |
+| Email | `funcionarioNN@gymmonitor.com` | `funcionario01@gymmonitor.com` |
+| Senha | `FuncNN@123` | `Func01@123` |
 
-## Running with Docker
+`NN` vai de `01` a `10`.
 
-The `docker-compose.yml` uses pre-built images from Docker Hub (`gmenoni/gymmonitor-*`). No local JDK or Node.js required.
+### Alunos
 
-### Start everything
+| Campo | Padrão | Exemplo |
+|---|---|---|
+| Email | `alunoNNNN@gymmonitor.com` | `aluno0001@gymmonitor.com` |
+| Senha | `AlunoNNNN@` | `Aluno0001@` |
+
+`NNNN` vai de `0001` a `2000`.
+
+---
+
+## Utilizando com Docker
+
+Não requer JDK, Node.js ou Python instalados — tudo roda via imagens do DockerHub (`gmenoni/gymmonitor-*`).
+
+### Subir
 
 ```bash
 docker compose up
 ```
 
-### Start in background
+### Subir em background
 
 ```bash
 docker compose up -d
 ```
 
-### Stop all containers
+### Parar
 
 ```bash
 docker compose down
 ```
 
-### Stop and remove all data (databases, queues)
+### Parar e remover todos os dados (bancos, filas)
 
 ```bash
 docker compose down -v
 ```
 
-All services, databases, RabbitMQ, and Redis start automatically.
+### URLs
 
-| URL | Description |
+| URL | Descrição |
 |---|---|
 | http://localhost:4200 | Frontend |
-| http://localhost:8080 | API Gateway (single external entry point) |
-| http://localhost:15672 | RabbitMQ Management (guest/guest) |
+| http://localhost:8080 | API Gateway |
+| http://localhost:15672 | RabbitMQ Management (`guest` / `guest`) |
 
-> Microservice ports (8081, 8082, 8083) are **not** exposed on the host — all traffic goes through the gateway.
+> As portas internas dos microserviços (8081, 8082, 8083) não são expostas — todo tráfego externo passa pelo gateway.
 
-## Demo Data
+### Dados de teste (seed)
 
-The default admin account is created automatically on first startup by the UserService. To populate the database with demo employees and students, run the seed script using Docker (no local Python required):
+O admin padrão é criado automaticamente pelo UserService na inicialização. Para popular funcionários e alunos, execute o seed após os containers subirem:
 
 ```bash
 docker compose run --rm seed
 ```
 
-The seed is **idempotent** — it checks whether the data already exists before running. Re-running it after the database has been populated is safe and has no effect.
+O seed é **idempotente** — detecta se os dados já existem e não faz nada em execuções repetidas.
 
-This creates:
-
-| Type | Count |
+| Tipo | Quantidade |
 |---|---|
-| Admin | 1 (auto-created by UserService) |
-| Funcionários (employees) | 10 |
-| Alunos (students) | 2000 |
+| Admin | 1 (criado automaticamente) |
+| Funcionários | 10 |
+| Alunos | 2000 |
 
-## Traffic Simulator
+### Simulador de tráfego
 
-The simulator continuously calls the checkin/checkout APIs, generating realistic presence data for the dashboard. Run it using Docker (no local Python required):
-
-```bash
-docker compose run --rm simulator
-```
-
-Or, if you prefer, run it locally in a separate terminal while containers are up:
+Simula checkins e checkouts contínuos para gerar dados no dashboard. Execute em um terminal separado com os containers rodando:
 
 ```bash
 cd scripts/simulator
@@ -98,47 +136,103 @@ pip install -r requirements.txt
 python simulator.py
 ```
 
-### Configuration via environment variables
-
-| Variable | Default | Description |
+| Variável | Padrão | Descrição |
 |---|---|---|
-| `GATEWAY_URL` | `http://localhost:8080/api` | API Gateway base URL |
-| `TICK_SECONDS` | `10` | Interval between ticks (seconds) |
-| `MAX_SIMULTANEOUS` | `80` | Max users inside at the same time |
-| `CHECKINS_PER_TICK` | `5` | Checkins attempted per tick |
-| `CHECKOUTS_PER_TICK` | `4` | Checkouts attempted per tick |
+| `GATEWAY_URL` | `http://localhost:8080/api` | URL base da API |
+| `TICK_SECONDS` | `10` | Intervalo entre ciclos (segundos) |
+| `MAX_SIMULTANEOUS` | `80` | Máximo de usuários presentes simultaneamente |
+| `CHECKINS_PER_TICK` | `5` | Checkins tentados por ciclo |
+| `CHECKOUTS_PER_TICK` | `4` | Checkouts tentados por ciclo |
 
-Example — simulate a peak hour with higher volume:
+Exemplo — simular horário de pico:
 
 ```bash
 TICK_SECONDS=5 MAX_SIMULTANEOUS=150 CHECKINS_PER_TICK=15 CHECKOUTS_PER_TICK=5 python simulator.py
 ```
 
-Press `Ctrl+C` to stop the simulator.
+`Ctrl+C` para parar.
 
-## Credentials
+---
 
-### Admin
+## Utilizando com Minikube
 
-| Field | Value |
+O Helm Chart em `helm/gymmonitor/` implanta toda a aplicação no Minikube com um único comando.
+
+### Pré-requisitos
+
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Helm 3](https://helm.sh/docs/intro/install/)
+
+### Deploy
+
+```bash
+# 1. Iniciar o Minikube com recursos suficientes
+minikube start --cpus=4 --memory=6144
+
+# 2. Habilitar o Ingress controller nginx
+minikube addons enable ingress
+
+# 3. Adicionar k8s.local ao /etc/hosts
+echo "$(minikube ip)  k8s.local" | sudo tee -a /etc/hosts
+
+# 4. Instalar o chart — sobe tudo e executa o seed automaticamente
+helm install gymmonitor ./helm/gymmonitor
+
+# 5. Aguardar os pods ficarem prontos (3–5 min)
+kubectl get pods --watch
+```
+
+Quando todos os pods estiverem `1/1 Running` e o Job `gymmonitor-seed` aparecer como `Completed`, a aplicação está pronta.
+
+### URLs
+
+| URL | Descrição |
 |---|---|
-| Email | `GymMonitor@gmail.com` |
-| Password | `GymAdmin@123` |
+| http://k8s.local | Frontend |
+| http://k8s.local/api/auth/admin/login | Login de admin (POST) |
 
-### Funcionários (employees)
+### Parar e retomar
 
-| Field | Pattern | Example |
+```bash
+# Parar o cluster (dados persistem nos PVCs)
+minikube stop
+
+# Retomar
+minikube start
+```
+
+### Desinstalar
+
+```bash
+# Remove o chart (mantém os PVCs com os dados)
+helm uninstall gymmonitor
+
+# Remove também os dados persistentes
+kubectl delete pvc postgres-users-pvc postgres-access-pvc redis-pvc rabbitmq-pvc
+
+# Ou destrói o cluster inteiro
+minikube delete
+```
+
+### Simulador de tráfego
+
+Com o cluster rodando, execute o simulador localmente apontando para `k8s.local`:
+
+```bash
+cd scripts/simulator
+pip install -r requirements.txt
+GATEWAY_URL=http://k8s.local/api python simulator.py
+```
+
+### Artefatos Kubernetes
+
+| Artefato | Qtd | Função |
 |---|---|---|
-| Email | `funcionarioNN@gymmonitor.com` | `funcionario01@gymmonitor.com` |
-| Password | `FuncNN@123` | `Func01@123` |
-
-Where `NN` is a zero-padded number from `01` to `10`.
-
-### Alunos (students)
-
-| Field | Pattern | Example |
-|---|---|---|
-| Email | `alunoNNNN@gymmonitor.com` | `aluno0001@gymmonitor.com` |
-| Password | `AlunoNNNN@` | `Aluno0001@` |
-
-Where `NNNN` is a zero-padded number from `0001` to `2000`.
+| `Deployment` | 9 | Um por serviço (infra + microserviços + frontend) |
+| `Service` (ClusterIP) | 9 | Comunicação interna entre pods |
+| `PersistentVolumeClaim` | 4 | Persistência para PostgreSQL (×2), Redis e RabbitMQ |
+| `ConfigMap` | 2 | Scripts SQL de inicialização dos bancos |
+| `Secret` | 1 | JWT secret e senhas do PostgreSQL |
+| `Job` | 1 | Seed idempotente executado uma vez no pós-install |
+| `Ingress` | 1 | Roteamento externo via nginx em `k8s.local` |
