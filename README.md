@@ -1,16 +1,16 @@
 # GymMonitor
 
-GymMonitor é um sistema distribuído de controle de acesso para academias. Alunos e funcionários fazem check-in e check-out, e um painel em tempo real exibe quantas pessoas estão presentes no momento.
+GymMonitor is a distributed access control system for gyms. Students and employees check in and check out, and a real-time dashboard shows how many people are currently inside.
 
-## Arquitetura
+## Architecture
 
-O sistema é composto por quatro microserviços Java e um frontend Angular, todos comunicando-se internamente através de um API Gateway:
+The system is composed of four Java microservices and an Angular frontend, all communicating internally through an API Gateway:
 
 ```
                     ┌─────────────────────────────────────────────┐
-                    │             Ponto de entrada único           │
-                    │   Docker: localhost:8080                     │
-                    │   Minikube: k8s.local (Ingress nginx)        │
+                    │              Single entry point              │
+                    │   Docker:    localhost:8080                  │
+                    │   Minikube:  k8s.local (nginx Ingress)       │
                     └──────────────┬──────────────┬───────────────┘
                                    │              │
                        ┌───────────▼──┐    ┌──────▼──────┐
@@ -31,70 +31,70 @@ O sistema é composto por quatro microserviços Java e um frontend Angular, todo
 └─────────────┘    └─────────────┘    └──────────┘  └───────┘
 ```
 
-| Serviço | Responsabilidade |
+| Service | Responsibility |
 |---|---|
-| **ApiGateway** | Único ponto de entrada externo — roteamento, CORS e validação JWT |
-| **UserService** | Cadastro e autenticação de usuários, emissão de tokens JWT |
-| **AccessControl** | Registro de check-in / check-out, publica eventos no RabbitMQ |
-| **PresenceService** | Mantém o estado de presença em tempo real via Redis e WebSocket |
-| **Frontend** | Interface Angular com dashboard de presença e gráfico histórico |
+| **ApiGateway** | Single external entry point — routing, CORS and JWT validation |
+| **UserService** | User registration and authentication, JWT token issuance |
+| **AccessControl** | Check-in / check-out records, publishes events to RabbitMQ |
+| **PresenceService** | Maintains real-time presence state via Redis and WebSocket |
+| **Frontend** | Angular UI with presence dashboard and history chart |
 
 **Stack:** Java 17 · Spring Boot 3.5 · Angular 21 · PostgreSQL 16 · Redis · RabbitMQ · Python 3.12
 
-## Credenciais
+## Credentials
 
-Criadas automaticamente pelo seed na primeira inicialização.
+Created automatically by the seed on first startup.
 
 ### Admin
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
 | Email | `GymMonitor@gmail.com` |
-| Senha | `GymAdmin@123` |
+| Password | `GymAdmin@123` |
 
-### Funcionários
+### Employees
 
-| Campo | Padrão | Exemplo |
+| Field | Pattern | Example |
 |---|---|---|
 | Email | `funcionarioNN@gymmonitor.com` | `funcionario01@gymmonitor.com` |
-| Senha | `FuncNN@123` | `Func01@123` |
+| Password | `FuncNN@123` | `Func01@123` |
 
-`NN` vai de `01` a `10`.
+`NN` ranges from `01` to `10`.
 
-### Alunos
+### Students
 
-| Campo | Padrão | Exemplo |
+| Field | Pattern | Example |
 |---|---|---|
 | Email | `alunoNNNN@gymmonitor.com` | `aluno0001@gymmonitor.com` |
-| Senha | `AlunoNNNN@` | `Aluno0001@` |
+| Password | `AlunoNNNN@` | `Aluno0001@` |
 
-`NNNN` vai de `0001` a `2000`.
+`NNNN` ranges from `0001` to `2000`.
 
 ---
 
-## Utilizando com Docker
+## Running with Docker
 
-Não requer JDK, Node.js ou Python instalados — tudo roda via imagens do DockerHub (`gmenoni/gymmonitor-*`).
+No local JDK, Node.js or Python required — everything runs from DockerHub images (`gmenoni/gymmonitor-*`).
 
-### Subir
+### Start
 
 ```bash
 docker compose up
 ```
 
-### Subir em background
+### Start in background
 
 ```bash
 docker compose up -d
 ```
 
-### Parar
+### Stop
 
 ```bash
 docker compose down
 ```
 
-### Parar e remover todos os dados (bancos, filas)
+### Stop and remove all data (databases, queues)
 
 ```bash
 docker compose down -v
@@ -102,33 +102,33 @@ docker compose down -v
 
 ### URLs
 
-| URL | Descrição |
+| URL | Description |
 |---|---|
 | http://localhost:4200 | Frontend |
 | http://localhost:8080 | API Gateway |
 | http://localhost:15672 | RabbitMQ Management (`guest` / `guest`) |
 
-> As portas internas dos microserviços (8081, 8082, 8083) não são expostas — todo tráfego externo passa pelo gateway.
+> Internal microservice ports (8081, 8082, 8083) are not exposed — all external traffic goes through the gateway.
 
-### Dados de teste (seed)
+### Demo data (seed)
 
-O admin padrão é criado automaticamente pelo UserService na inicialização. Para popular funcionários e alunos, execute o seed após os containers subirem:
+The default admin account is created automatically by the UserService on startup. To populate employees and students, run the seed after the containers are up:
 
 ```bash
 docker compose run --rm seed
 ```
 
-O seed é **idempotente** — detecta se os dados já existem e não faz nada em execuções repetidas.
+The seed is **idempotent** — it detects whether the data already exists and does nothing on repeated runs.
 
-| Tipo | Quantidade |
+| Type | Count |
 |---|---|
-| Admin | 1 (criado automaticamente) |
-| Funcionários | 10 |
-| Alunos | 2000 |
+| Admin | 1 (created automatically) |
+| Employees | 10 |
+| Students | 2000 |
 
-### Simulador de tráfego
+### Traffic simulator
 
-Simula checkins e checkouts contínuos para gerar dados no dashboard. Execute em um terminal separado com os containers rodando:
+Simulates continuous check-ins and check-outs to generate data for the dashboard. Run in a separate terminal with the containers up:
 
 ```bash
 cd scripts/simulator
@@ -136,104 +136,104 @@ pip install -r requirements.txt
 python simulator.py
 ```
 
-| Variável | Padrão | Descrição |
+| Variable | Default | Description |
 |---|---|---|
-| `GATEWAY_URL` | `http://localhost:8080/api` | URL base da API |
-| `TICK_SECONDS` | `10` | Intervalo entre ciclos (segundos) |
-| `MAX_SIMULTANEOUS` | `80` | Máximo de usuários presentes simultaneamente |
-| `CHECKINS_PER_TICK` | `5` | Checkins tentados por ciclo |
-| `CHECKOUTS_PER_TICK` | `4` | Checkouts tentados por ciclo |
+| `GATEWAY_URL` | `http://localhost:8080/api` | API base URL |
+| `TICK_SECONDS` | `10` | Interval between ticks (seconds) |
+| `MAX_SIMULTANEOUS` | `80` | Maximum users inside at the same time |
+| `CHECKINS_PER_TICK` | `5` | Check-ins attempted per tick |
+| `CHECKOUTS_PER_TICK` | `4` | Check-outs attempted per tick |
 
-Exemplo — simular horário de pico:
+Example — simulate peak hour:
 
 ```bash
 TICK_SECONDS=5 MAX_SIMULTANEOUS=150 CHECKINS_PER_TICK=15 CHECKOUTS_PER_TICK=5 python simulator.py
 ```
 
-`Ctrl+C` para parar.
+Press `Ctrl+C` to stop.
 
 ---
 
-## Utilizando com Minikube
+## Running with Minikube
 
-O Helm Chart em `helm/gymmonitor/` implanta toda a aplicação no Minikube com um único comando.
+The Helm Chart in `helm/gymmonitor/` deploys the entire application to Minikube with a single command.
 
-### Pré-requisitos
+### Prerequisites
 
 - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm 3](https://helm.sh/docs/intro/install/)
 
-### Build e exportação das imagens
+### Building and loading images
 
-O script `scripts/build-and-load.sh` builda todas as imagens e as carrega diretamente no Minikube (sem necessidade de DockerHub):
+The `scripts/build-and-load.sh` script builds all images and loads them directly into Minikube (no DockerHub push required):
 
 ```bash
-# Executar a partir da raiz do repositório
+# Run from the repository root
 bash scripts/build-and-load.sh
 ```
 
-Opções disponíveis:
+Available options:
 
-| Opção | Efeito |
+| Option | Effect |
 |---|---|
-| `--skip-build` | Pula o `docker build` (carrega imagens já existentes localmente) |
-| `--skip-load` | Pula o `minikube image load` (apenas builda) |
+| `--skip-build` | Skip `docker build` (load already-built local images) |
+| `--skip-load` | Skip `minikube image load` (build only) |
 
 ### Deploy
 
 ```bash
-# 1. Iniciar o Minikube com recursos suficientes
+# 1. Start Minikube with enough resources
 minikube start --cpus=4 --memory=6144
 
-# 2. Habilitar o Ingress controller nginx
+# 2. Enable the nginx Ingress controller
 minikube addons enable ingress
 
-# 3. Adicionar k8s.local ao /etc/hosts
+# 3. Add k8s.local to /etc/hosts
 echo "$(minikube ip)  k8s.local" | sudo tee -a /etc/hosts
 
-# 4. Instalar o chart — sobe tudo e executa o seed automaticamente
+# 4. Install the chart — starts everything and runs the seed automatically
 helm install gymmonitor ./helm/gymmonitor
 
-# 5. Aguardar os pods ficarem prontos (3–5 min)
+# 5. Wait for all pods to be ready (3–5 min)
 kubectl get pods --watch
 ```
 
-Quando todos os pods estiverem `1/1 Running` e o Job `gymmonitor-seed` aparecer como `Completed`, a aplicação está pronta.
+When all pods show `1/1 Running` and the `gymmonitor-seed` Job shows `Completed`, the application is ready.
 
 ### URLs
 
-| URL | Descrição |
+| URL | Description |
 |---|---|
 | http://k8s.local | Frontend |
-| http://k8s.local/api/auth/admin/login | Login de admin (POST) |
+| http://k8s.local/api/auth/admin/login | Admin login (POST) |
 
-### Parar e retomar
+### Stop and resume
 
 ```bash
-# Parar o cluster (dados persistem nos PVCs)
+# Stop the cluster (data persists in PVCs)
 minikube stop
 
-# Retomar
+# Resume
 minikube start
 ```
 
-### Desinstalar
+### Uninstall
 
 ```bash
-# Remove o chart (mantém os PVCs com os dados)
+# Remove the chart (PVCs and data are kept)
 helm uninstall gymmonitor
 
-# Remove também os dados persistentes
+# Also remove persistent data
 kubectl delete pvc postgres-users-pvc postgres-access-pvc redis-pvc rabbitmq-pvc
 
-# Ou destrói o cluster inteiro
+# Or destroy the entire cluster
 minikube delete
 ```
 
-### Simulador de tráfego
+### Traffic simulator
 
-Com o cluster rodando, execute o simulador localmente apontando para `k8s.local`:
+With the cluster running, run the simulator locally pointing to `k8s.local`:
 
 ```bash
 cd scripts/simulator
@@ -241,14 +241,75 @@ pip install -r requirements.txt
 GATEWAY_URL=http://k8s.local/api python simulator.py
 ```
 
-### Artefatos Kubernetes
+### Kubernetes artifacts
 
-| Artefato | Qtd | Função |
+| Artifact | Count | Purpose |
 |---|---|---|
-| `Deployment` | 9 | Um por serviço (infra + microserviços + frontend) |
-| `Service` (ClusterIP) | 9 | Comunicação interna entre pods |
-| `PersistentVolumeClaim` | 4 | Persistência para PostgreSQL (×2), Redis e RabbitMQ |
-| `ConfigMap` | 2 | Scripts SQL de inicialização dos bancos |
-| `Secret` | 1 | JWT secret e senhas do PostgreSQL |
-| `Job` | 1 | Seed idempotente executado uma vez no pós-install |
-| `Ingress` | 1 | Roteamento externo via nginx em `k8s.local` |
+| `Deployment` | 9 | One per service (infra + microservices + frontend) |
+| `Service` (ClusterIP) | 9 | Internal pod-to-pod communication |
+| `PersistentVolumeClaim` | 4 | Persistent storage for PostgreSQL (×2), Redis and RabbitMQ |
+| `ConfigMap` | 2 | PostgreSQL initialization SQL scripts |
+| `Secret` | 1 | JWT secret and PostgreSQL passwords |
+| `Job` | 1 | Idempotent seed run once as a post-install hook |
+| `Ingress` | 1 | External routing via nginx at `k8s.local` |
+
+### Test plan
+
+Steps to validate a fresh Minikube deployment.
+
+**1. All pods running:**
+
+```bash
+kubectl get pods
+```
+
+Expected: all pods `1/1 Running`, Job `gymmonitor-seed` as `Completed`.
+
+**2. Ingress has an address:**
+
+```bash
+kubectl get ingress gymmonitor-ingress
+```
+
+Expected: `ADDRESS` column shows the Minikube IP.
+
+**3. Admin login:**
+
+```bash
+curl -s -X POST http://k8s.local/api/auth/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"GymMonitor@gmail.com","password":"GymAdmin@123"}'
+```
+
+Expected: JSON with `token` and `role: "ADMIN"`.
+
+**4. Seed data:**
+
+```bash
+# Replace <TOKEN> with the token from the previous step
+curl -s http://k8s.local/api/user-service/alunos/count \
+  -H "Authorization: Bearer <TOKEN>"
+# Expected: {"count":2000}
+
+curl -s http://k8s.local/api/user-service/funcionarios/count \
+  -H "Authorization: Bearer <TOKEN>"
+# Expected: {"count":10}
+```
+
+**5. Employee check-in:**
+
+```bash
+TOKEN=$(curl -s -X POST http://k8s.local/api/auth/funcionarios/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"funcionario01@gymmonitor.com","password":"Func01@123"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+curl -s -X POST http://k8s.local/api/access/checkin \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Expected: JSON with `sessaoId`, `entradaEm` and `userType: "FUNCIONARIO"`.
+
+**6. Frontend and WebSocket:**
+
+Open `http://k8s.local` in the browser, log in as Admin, and verify the presence counter updates in real time.
